@@ -388,6 +388,7 @@ $('logout').addEventListener('click',()=>{if(dirty&&!confirm('Có thay đổi ch
 window.addEventListener('message',e=>{
   if(!ALLOW.some(r=>r.test(e.origin)))return;const d=e.data||{};
   if(d.giapha==='auth'&&typeof d.pw==='string'&&!DATA)unlock(d.pw,true);
+  if(d.giapha==='goto'&&typeof d.id==='string'){if(DATA&&P[d.id])goTo(d.id);else pendingGoto=d.id;}
   if(d.giapha==='logout'){store.del(KEY);if(DATA&&!dirty)location.reload();}
 });
 
@@ -404,7 +405,11 @@ function start(){
   $('adminBar').hidden=!isAdmin();
   renderAll();
   if(inFrame)try{parent.postMessage({giapha:'role',role:ROLE},'*');}catch(_){}
+  const h=pendingGoto||(location.hash||'').slice(1);pendingGoto=null;
+  if(P[h]&&h!==cur)goTo(h);
 }
+let pendingGoto=null;
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(DATA&&P[h])goTo(h);});
 function renderAll(){renderChi();render();showProf(sel);setDirty(dirty);postHeight();}
 
 /* ---------- cột phải: 8 chi + con ---------- */
