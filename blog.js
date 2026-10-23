@@ -7,7 +7,8 @@
   var WIN='giapha-dien-sanh';
   function auth(){try{return JSON.parse(localStorage.getItem('gp-blog-auth')||sessionStorage.getItem('gp-blog-auth')||'null')}catch(e){return null}}
   function openTree(id){
-    var url=APP+(id?'#'+id:'');
+    /* thêm ?v=giờ hiện tại để trình duyệt luôn lấy bản mới, tối đa trễ 1 giờ */
+    var url=APP+'?v='+Math.floor(Date.now()/3600000)+(id?'#'+id:'');
     var w=null;try{w=window.open(url,WIN)}catch(e){}
     if(w){try{w.focus()}catch(e){}}else location.href=url;
   }
