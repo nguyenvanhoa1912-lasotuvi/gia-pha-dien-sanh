@@ -44,12 +44,12 @@ button,input,select,textarea{font:inherit;color:inherit}
   border:3px double #b8892f;outline:2px solid var(--parch-d);padding:8px 26px;text-align:center;color:#d0161b;font-family:var(--f-doi);font-style:italic;font-weight:700;font-size:clamp(15px,2.4vw,22px);line-height:1.25;text-transform:uppercase;letter-spacing:.02em}
 
 /* menu */
-.menu{background:linear-gradient(#e2262d,#b5131a);border-bottom:1px solid var(--red-d);overflow-x:auto}
-.menu ul{list-style:none;margin:0 auto;padding:0;display:flex;max-width:1000px}
+.menu{width:calc(100% - max(20px,env(safe-area-inset-left,0px) + env(safe-area-inset-right,0px)));max-width:980px;margin:0 auto;background:linear-gradient(#e2262d,#b5131a);border-bottom:1px solid var(--red-d);border-radius:4px 4px 0 0;overflow-x:auto}
+.menu ul{list-style:none;margin:0;padding:0;display:flex}
 .menu a,.menu button{display:block;white-space:nowrap;padding:11px 14px;color:#fff;text-decoration:none;font:700 13px var(--f-ui);border:0;border-right:1px solid rgba(0,0,0,.18);box-shadow:1px 0 0 rgba(255,255,255,.15);background:none;cursor:pointer}
 .menu a:hover,.menu button:hover,.menu .on{background:rgba(0,0,0,.18)}
-.bar{background:linear-gradient(var(--bar),var(--bar-d));color:#eee}
-.bar .wrap{display:flex;align-items:center;gap:12px;padding-block:6px}
+.bar{width:calc(100% - max(20px,env(safe-area-inset-left,0px) + env(safe-area-inset-right,0px)));max-width:980px;margin:0 auto;background:linear-gradient(var(--bar),var(--bar-d));color:#eee;box-shadow:0 3px 4px -2px rgba(0,0,0,.35)}
+.bar .wrap{display:flex;align-items:center;gap:12px;padding-block:6px;max-width:none;padding-left:10px;padding-right:6px}
 .run{flex:1;min-width:0;overflow:hidden;white-space:nowrap;font-style:italic;font-size:13px}
 .run span{display:inline-block;padding-left:100%;animation:run 26s linear infinite}
 @keyframes run{to{transform:translateX(-100%)}}
