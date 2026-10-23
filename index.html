@@ -404,7 +404,7 @@ function rebuild(){
 }
 function start(){
   rebuild();
-  $('tt').innerHTML=DATA.tt||'';
+  $('tt').innerHTML=DATA.tt||'';$('tt').hidden=true; /* bài Thế phổ tự chỉ hiện khi bấm menu */
   $('lockWrap').hidden=true;$('app').hidden=false;$('q').disabled=false;$('logout').hidden=false;
   $('adminBar').hidden=!isAdmin();
   renderAll();
@@ -426,7 +426,7 @@ function renderChi(){
   $('kids').innerHTML=k.map(c=>`<li><button type="button" data-p="${c}">${esc(P[c].n)}</button></li>`).join('');
   $('crumb').textContent='Gia phả » Chi cụ '+P[cur].n;
 }
-$('chi').addEventListener('click',e=>{const b=e.target.closest('.bv');if(!b)return;cur=b.dataset.id;sel=cur;hl=null;collapsed.clear();renderAll();scrollToEl($('pha-he'));
+$('chi').addEventListener('click',e=>{const b=e.target.closest('.bv');if(!b)return;cur=b.dataset.id;sel=cur;hl=null;collapsed.clear();showTT(false);renderAll();scrollToEl($('pha-he'));
   try{history.replaceState(null,'','#'+cur);}catch(_){}});
 
 /* ---------- cây ---------- */
@@ -500,7 +500,7 @@ function goTo(id){
   const p=P[id];if(!p)return;
   if(p.c!==cur){cur=p.c;collapsed.clear();try{history.replaceState(null,'','#'+cur);}catch(_){}}
   let a=p.f;while(a&&P[a]){collapsed.delete(a);a=P[a].f;}
-  sel=id;hl=id;confirmDel=null;renderAll();scrollToEl($('n-'+id));
+  sel=id;hl=id;confirmDel=null;showTT(false);renderAll();scrollToEl($('n-'+id));
 }
 
 /* ---------- biểu mẫu: quản trị sửa thẳng, thành viên tạo tin nhắn ---------- */
@@ -651,7 +651,10 @@ document.addEventListener('click',e=>{
   if(d.p){confirmDel=null;if(t.closest('#tree')){sel=d.p;hl=null;render();showProf(sel);}else goTo(d.p);}
 });
 document.querySelector('.menu').addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(!a)return;e.preventDefault();if($('app').hidden){$('lkPw').focus();return;}
-  document.querySelectorAll('.menu .on').forEach(x=>x.classList.remove('on'));a.classList.add('on');scrollToEl($(a.dataset.go));});
+  document.querySelectorAll('.menu .on').forEach(x=>x.classList.remove('on'));a.classList.add('on');
+  showTT(a.dataset.go==='phu-tu'||a.dataset.go==='thuy-to');scrollToEl($(a.dataset.go));});
+function showTT(on){$('tt').hidden=!on;const g=document.querySelector('.menu [data-go="pha-he"]');
+  if(!on){document.querySelectorAll('.menu .on').forEach(x=>x.classList.remove('on'));if(g)g.classList.add('on');}postHeight();}
 $('expand').onclick=()=>{collapsed.clear();render();};
 $('collapse').onclick=()=>{(KIDS[cur]||[]).forEach(k=>{if(KIDS[k])collapsed.add(k);});render();};
 /* về trang chủ blog: nếu mở từ blog thì quay lại cửa sổ blog và đóng cửa sổ gia phả */
