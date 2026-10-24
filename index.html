@@ -152,6 +152,7 @@ form.f .row{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;align-items:cen
 .adm #dirty{color:var(--ink-d)}
 .adm #dirty.on{color:var(--red);font-weight:700}
 .adm .sp2{flex:1}
+.adm-err{flex-basis:100%;background:#fdecea;border:1px solid #f5b5ad;color:#a3160f;padding:7px 10px;font-size:13px;line-height:1.45}
 .btn:disabled{opacity:.5;cursor:default}
 .confirm{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--red);margin-top:8px}
 .mk{display:inline-block;font-size:10px;font-weight:700;color:#2e7d32;border:1px solid #81c784;border-radius:2px;padding:0 4px;margin-left:5px;vertical-align:2px}
@@ -287,6 +288,8 @@ footer a,footer .lk{color:#fff}
         <button class="btn sm" type="button" id="btnBackup">Tải bản sao lưu</button>
         <button class="btn sm" type="button" id="btnGh">Cài đặt GitHub</button>
         <button class="btn sm" type="button" id="btnPw">Đổi mật khẩu</button>
+        <button class="btn sm" type="button" id="btnGhChk">Kiểm tra kết nối GitHub</button>
+        <div class="adm-err" id="admErr" role="alert" hidden></div>
       </div>
       <div class="crumb"><a href="https://honguyendiensanh-ht.blogspot.com/" data-home="1">Home</a> » <span id="crumb">Gia phả</span></div>
       <div class="post">
@@ -746,28 +749,53 @@ function ghCfg(){let c={};try{c=JSON.parse(store.get('giapha-gh')||'{}');}catch(
   const host=location.hostname.match(/^([^.]+)\.github\.io$/);const seg=location.pathname.split('/').filter(Boolean)[0];
   return {owner:c.owner||(host?host[1]:''),repo:c.repo||(host&&seg?seg:''),branch:c.branch||'main',token:c.token||''};}
 function openGh(){const c=ghCfg();$('ghOwner').value=c.owner;$('ghRepo').value=c.repo;$('ghBranch').value=c.branch;$('ghToken').value=c.token;$('ghCard').hidden=false;scrollToEl($('ghCard'));postHeight();}
-$('btnGh').onclick=openGh;$('ghClose').onclick=()=>{$('ghCard').hidden=true;postHeight();};
+$('btnGh').onclick=openGh;$('btnGhChk').onclick=ghCheck;$('ghClose').onclick=()=>{$('ghCard').hidden=true;postHeight();};
 $('ghForm').addEventListener('submit',e=>{e.preventDefault();
   store.set('giapha-gh',JSON.stringify({owner:$('ghOwner').value.trim(),repo:$('ghRepo').value.trim(),branch:$('ghBranch').value.trim()||'main',token:$('ghToken').value.trim()}));
-  $('ghCard').hidden=true;toast('Đã lưu cài đặt GitHub trên thiết bị này.');postHeight();});
+  $('ghCard').hidden=true;toast('Đã lưu cài đặt GitHub trên thiết bị này.');postHeight();ghCheck();});
+async function ghFetch(url,opt){try{return await fetch(url,opt);}catch(e){throw new Error('Không kết nối được tới GitHub. Kiểm tra mạng, hoặc tắt trình chặn quảng cáo cho trang này rồi thử lại.');}}
+async function ghMsg(r){try{const j=await r.json();return j&&j.message?j.message:'';}catch(_){return '';}}
+function ghExplain(status,m,step){
+  if(status===401)return 'Mã truy cập (token) sai hoặc đã hết hạn. Tạo mã mới rồi dán lại trong "Cài đặt GitHub".';
+  if(status===404)return step==='repo'?'Không thấy kho gia phả. Kiểm tra lại Tài khoản / Kho trong "Cài đặt GitHub", hoặc mã chưa được cấp quyền cho kho "gia-pha-dien-sanh" (mục Repository access → Only select repositories).':'Không tìm thấy file trên GitHub.';
+  if(status===403&&/not accessible|permission|forbidden/i.test(m))return 'Mã truy cập chưa có quyền ghi. Vào GitHub sửa mã: Permissions → Contents → chọn "Read and write", bấm Update.';
+  if(status===403&&/rate limit/i.test(m))return 'GitHub tạm giới hạn số lần gọi. Đợi vài phút rồi lưu lại.';
+  if(status===409)return 'Dữ liệu trên GitHub vừa được cập nhật ở nơi khác. Tải bản sao lưu, tải lại trang rồi sửa lại.';
+  if(status===422)return 'GitHub từ chối dữ liệu gửi lên'+(m?' ('+m+')':'')+'.';
+  return 'GitHub báo lỗi '+status+(m?': '+m:'')+'.';}
 async function ghPut(path,text,msg){
-  const c=ghCfg();if(!c.owner||!c.repo||!c.token){openGh();throw new Error('Cần nhập cài đặt GitHub trước.');}
-  const api=`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${path}`;
+  const c=ghCfg();if(!c.owner||!c.repo||!c.token){openGh();throw new Error('Chưa có mã truy cập GitHub. Dán mã vào ô "Mã truy cập (token)" rồi bấm "Lưu cài đặt".');}
+  const base=`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}`,api=`${base}/contents/${path}`;
   const h={Authorization:'Bearer '+c.token,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
-  let sha;const g=await fetch(api+'?ref='+encodeURIComponent(c.branch),{headers:h,cache:'no-store'});
-  if(g.ok)sha=(await g.json()).sha;else if(g.status===401)throw new Error('Mã truy cập GitHub sai hoặc đã hết hạn.');else if(g.status!==404)throw new Error('GitHub báo lỗi '+g.status+'.');
+  let sha;const g=await ghFetch(api+'?ref='+encodeURIComponent(c.branch)+'&t='+Date.now(),{headers:h,cache:'no-store'});
+  if(g.ok)sha=(await g.json()).sha;
+  else if(g.status!==404)throw new Error(ghExplain(g.status,await ghMsg(g),'get'));
+  else{const rr=await ghFetch(base,{headers:h,cache:'no-store'});if(!rr.ok)throw new Error(ghExplain(rr.status,await ghMsg(rr),'repo'));}
   const body={message:msg,content:toB64(te.encode(text)),branch:c.branch};if(sha)body.sha=sha;
-  const r=await fetch(api,{method:'PUT',headers:h,body:JSON.stringify(body)});
-  if(r.status===401||r.status===403)throw new Error('Mã truy cập không có quyền ghi vào kho này.');
-  if(r.status===409)throw new Error('Dữ liệu trên GitHub vừa được người khác cập nhật. Tải lại trang rồi sửa lại.');
-  if(!r.ok)throw new Error('GitHub báo lỗi '+r.status+'.');
+  const r=await ghFetch(api,{method:'PUT',headers:h,body:JSON.stringify(body)});
+  if(!r.ok)throw new Error(ghExplain(r.status,await ghMsg(r),'put'));
+}
+function admErr(t){const e=$('admErr');if(!e)return;e.hidden=!t;e.textContent=t?'⚠ '+t:'';postHeight();}
+async function ghCheck(){
+  const c=ghCfg(),out=[];
+  if(!c.token){admErr('Chưa có mã truy cập GitHub trên máy này. Bấm "Cài đặt GitHub" để dán mã.');return;}
+  const h={Authorization:'Bearer '+c.token,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
+  try{
+    const u=await ghFetch('https://api.github.com/user',{headers:h,cache:'no-store'});
+    if(!u.ok){admErr(ghExplain(u.status,await ghMsg(u),'user'));return;}
+    const me=(await u.json()).login;out.push('Mã hợp lệ (tài khoản '+me+')');
+    const r=await ghFetch(`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}`,{headers:h,cache:'no-store'});
+    if(!r.ok){admErr(out.join(' · ')+'. '+ghExplain(r.status,await ghMsg(r),'repo'));return;}
+    out.push('đọc được kho '+c.owner+'/'+c.repo);
+    toast('Kết nối GitHub tốt: '+out.join(', ')+'. Quyền ghi sẽ được kiểm tra khi bấm "Lưu lên GitHub".');admErr('');
+  }catch(e){admErr(e.message);}
 }
 $('btnSave').onclick=async()=>{
   const b=$('btnSave');b.disabled=true;b.textContent='Đang lưu…';
   try{DATA.updated=new Date().toISOString();const enc=await encData(RAW,DATA);
     await ghPut('data.enc.json',JSON.stringify(enc),'Cập nhật gia phả '+new Date().toLocaleString('vi-VN'));
-    setDirty(0);toast('Đã lưu lên GitHub. Mọi người sẽ thấy sau khoảng 1–10 phút.');}
-  catch(e){toast(e.message);setDirty(dirty);}finally{b.textContent='Lưu lên GitHub';}
+    admErr('');setDirty(0);toast('Đã lưu lên GitHub. Mọi người sẽ thấy sau khoảng 1–10 phút.');}
+  catch(e){admErr('Chưa lưu được: '+e.message);setDirty(dirty);}finally{b.textContent='Lưu lên GitHub';}
 };
 /* ---------- sao lưu ---------- */
 $('btnBackup').onclick=()=>{
@@ -791,7 +819,7 @@ $('pwForm').addEventListener('submit',async e=>{
     await ghPut('keys.json',JSON.stringify(nk),'Đổi mật khẩu gia phả');
     KEYS=nk;if(a){PW=a;if(store.get(KEY))store.set(KEY,a);}
     $('pwForm').reset();$('pwCard').hidden=true;toast('Đã đổi mật khẩu. Ghi lại mật khẩu mới ở nơi an toàn.');
-  }catch(err){$('pwErr').textContent=err.message;}
+  }catch(err){$('pwErr').textContent=err.message;admErr('Chưa đổi được mật khẩu: '+err.message);}
 });
 
 /* ---------- tìm kiếm, sự kiện ---------- */
