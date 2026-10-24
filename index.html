@@ -223,6 +223,8 @@ form.f .row{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;align-items:cen
 .gtab tr.past td{opacity:.55}
 .gtab td.ga{white-space:nowrap}
 .gtab .confirm{display:inline-flex;margin:0 0 0 4px}
+.dcal{display:flex;gap:6px}.dcal input{flex:1;min-width:0}.dcal select{width:auto!important}
+.dconv{color:#2e7d32;font-size:11.5px;min-height:1em}
 .mk.sp{color:#8e24aa;border-color:#ce93d8}
 .mk.warn{color:#b26a00;border-color:#e0b25b}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
@@ -373,7 +375,7 @@ footer a,footer .lk{color:#fff}
           <form class="f" id="spForm" novalidate>
             <label class="full">Họ và tên<input id="spName" autocomplete="off"></label>
             <label>Sinh<input id="spBorn" autocomplete="off" placeholder="vd: 1952 hoặc 4/4/1952"></label>
-            <label>Mất<input id="spDied" autocomplete="off" placeholder="vd: 2010 / 12/3 ÂL"></label>
+            <label class="full">Ngày mất<span class="dcal"><input id="spDied" autocomplete="off" placeholder="vd: 21/7/1979"><select id="spDiedCal" aria-label="Loại lịch của ngày mất"><option value="duong">Dương lịch</option><option value="am">Âm lịch</option></select></span><small class="dconv" id="spDiedConv"></small></label>
             <label class="full">Quê quán / nơi ở<input id="spQue" autocomplete="off" placeholder="vd: Triệu Phong, Quảng Trị"></label>
             <label class="full">Cha mẹ đẻ<input id="spPa" autocomplete="off" placeholder="vd: con ông Lê Văn A, bà Trần Thị B"></label>
             <label class="full">Ghi chú<textarea id="spNote" placeholder="Nghề nghiệp, mộ phần, nguồn thông tin…"></textarea></label>
@@ -392,7 +394,7 @@ footer a,footer .lk{color:#fff}
             <label>Giới tính<select id="fSex"><option value="m">Nam</option><option value="f">Nữ</option><option value="">Chưa rõ</option></select></label>
             <label id="fWithL">Con với<select id="fWith"></select></label>
             <label>Sinh<input id="fBorn" autocomplete="off" placeholder="vd: 2024"></label>
-            <label>Mất<input id="fDied" autocomplete="off" placeholder="vd: giỗ 12/3 ÂL"></label>
+            <label class="full">Ngày mất<span class="dcal"><input id="fDied" autocomplete="off" placeholder="vd: 21/7/1979"><select id="fDiedCal" aria-label="Loại lịch của ngày mất"><option value="duong">Dương lịch</option><option value="am">Âm lịch</option></select></span><small class="dconv" id="fDiedConv"></small></label>
             <label class="full" id="fSpL">Hôn phối<input id="fSpouse" autocomplete="off" placeholder="Họ tên vợ hoặc chồng"></label>
             <label class="full">Ghi chú<textarea id="fNote" placeholder="Nơi ở, mộ phần, nguồn thông tin…"></textarea></label>
             <label class="full">Người gửi<input id="fFrom" autocomplete="name" placeholder="Tên bạn, con ông/bà nào"></label>
@@ -458,7 +460,27 @@ const HAN=['','一','二','三','四','五','六','七','八','九','十'];
 const han=n=>n<=10?HAN[n]:'十'+HAN[n-10];
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const life=(b,d)=>[b&&'Sinh '+b,d&&'Mất '+String(d).replace(/ AL$/,' ÂL')].filter(Boolean).join(' · ');
+const life=(b,d)=>[b&&'Sinh '+b,d&&'Mất '+deathShort(d)].filter(Boolean).join(' · ');
+/* ngày mất: nhận dạng dương lịch (d/m/yyyy) hoặc âm lịch (có chữ ÂL/AL) */
+function parseDeath(v){
+  const s=String(v||'').trim();if(!s)return null;const lunar=/(^|\s)(ÂL|AL|âm)/i.test(s);
+  const m=s.match(/(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{4}))?/);
+  if(!m){const y=s.match(/^(\d{4})$/);return y?{year:+y[1],raw:s}:{raw:s};}
+  const d=+m[1],mo=+m[2],y=m[3]?+m[3]:null;if(d<1||d>31||mo<1||mo>12)return {raw:s};
+  if(lunar){const sol=y?AL.l2s(d,mo,y,0):null;return {lunar:[d,mo,y,0],solar:sol?[sol[0],sol[1],sol[2]]:null,raw:s};}
+  if(!y)return {raw:s,amb:true};
+  const l=AL.s2l(d,mo,y);return {solar:[d,mo,y],lunar:l,raw:s};
+}
+const lunTxt=l=>`${l[0]}/${l[1]}${l[3]?' nhuận':''}${l[2]?' năm '+AL.canChi(l[2]):''}`;
+function deathLong(v){const p=parseDeath(v);if(!p)return '';
+  if(p.solar&&p.lunar)return `${p.solar.join('/')} dương lịch · ${lunTxt(p.lunar)} âm lịch`;
+  if(p.lunar)return `${lunTxt(p.lunar)} âm lịch`;
+  if(p.year)return 'năm '+p.year;
+  return p.raw+(p.amb?' (chưa rõ âm hay dương lịch)':'');}
+function deathShort(v){const p=parseDeath(v);if(!p)return '';
+  if(p.solar&&p.lunar)return `${p.solar.join('/')} (${p.lunar[0]}/${p.lunar[1]} ÂL)`;
+  if(p.lunar)return `${p.lunar[0]}/${p.lunar[1]}${p.lunar[2]?'/'+p.lunar[2]:''} ÂL`;
+  return p.raw;}
 const KEY='giapha-diensanh-pw';
 /* blog được phép gửi mật khẩu sang khung nhúng */
 const ALLOW=[/^https:\/\/honguyendiensanh-ht\.blogspot\.com$/,/^https:\/\/(www\.)?honguyendiensanh-ht\.com$/];
@@ -619,7 +641,7 @@ function showProf(id){
   h+=`<dt>Đời</dt><dd>${p.g} (${han(p.g)}世) · chi thứ ${CHI.indexOf(p.c)+1}</dd>`;
   h+=`<dt>Mã</dt><dd>${esc(p.i)}</dd>`;
   if(p.b)h+=`<dt>Sinh</dt><dd>${esc(p.b)}</dd>`;
-  if(p.d)h+=`<dt>Mất</dt><dd>${esc(String(p.d).replace(/ AL$/,' ÂL'))}</dd>`;
+  if(p.d)h+=`<dt>Mất</dt><dd>${esc(deathLong(p.d))}</dd>`;
   if(gioTxt(id))h+=`<dt>Ngày giỗ</dt><dd>${esc(gioTxt(id))}</dd>`;
   h+=`<dt>Cha mẹ</dt><dd>${parentName(p)}</dd>`;
   if(sps.length)h+=`<dt>Hôn phối</dt><dd>${sps.map(spLink).join('<br>')}</dd>`;
@@ -650,7 +672,7 @@ function goTo(id){
 const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
 function openForm(mode,target){
   const p=P[target];if(!p)return;form={mode,target};
-  $('formCard').hidden=false;$('form').reset();$('fOut').hidden=true;$('fErr').textContent='';
+  $('formCard').hidden=false;$('form').reset();$('fDiedConv').textContent='';$('fOut').hidden=true;$('fErr').textContent='';
   $('fFrom').parentElement.hidden=isAdmin();
   const spLabel=$('fSpL').firstChild;
   if(mode==='add'){
@@ -660,7 +682,7 @@ function openForm(mode,target){
     $('fWithL').hidden=false;spLabel.textContent='Hôn phối của người con';
   }else{
     $('fTitle').textContent=(isAdmin()?'Sửa thông tin ':'Báo sửa thông tin ')+p.n;$('fWithL').hidden=true;
-    $('fName').value=p.n;$('fBorn').value=p.b||'';$('fDied').value=p.d||'';
+    $('fName').value=p.n;$('fBorn').value=p.b||'';setDied('fDied',p.d||'');
     if(isAdmin()){spLabel.textContent='Hôn phối (nhiều người cách nhau dấu ;)';$('fSpouse').value=(SP[target]||[]).filter(s=>s.n).map(s=>s.n).join('; ');$('fNote').value=NOTES[target]||'';}
     else spLabel.textContent='Thêm hôn phối';
   }
@@ -671,7 +693,7 @@ function openForm(mode,target){
 $('fCancel').onclick=()=>{form=null;$('formCard').hidden=true;postHeight();};
 $('form').addEventListener('submit',async e=>{
   e.preventDefault();if(!form)return;
-  const p=P[form.target];const v=k=>$(k).value.trim();
+  const p=P[form.target];const v=k=>k==='fDied'?getDied('fDied'):$(k).value.trim();
   if(!v('fName')){$('fErr').textContent='Cần nhập họ và tên.';return;}
   if(isAdmin()){adminApply(form.mode,p,v);return;}
   const sex={m:'Nam',f:'Nữ'}[$('fSex').value]||'';
@@ -848,20 +870,26 @@ const fmtD=d=>`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
 const today0=()=>{const t=new Date();return new Date(t.getFullYear(),t.getMonth(),t.getDate());};
 function gioSeed(){return [
   {id:'g-I1',pid:'I1',name:'Cụ Tế · Nguyễn Văn Liên (Thủy tổ)',d:12,m:3,place:'',host:'',note:'Theo ghi chú trên phả gốc TNG.'},
-  {id:'g-I160',pid:'I160',name:'Nguyễn Thị Lãnh',d:25,m:9,place:'',host:'',note:'Theo phả gốc: mất 25/9 ÂL.'},
   {id:'g-I6',pid:'I6',name:'Cụ Hường · Nguyễn Văn Quỳ',d:11,m:7,place:'',host:'',note:'Phả gốc ghi "Mất 11-07", chưa rõ âm hay dương lịch. Cần xác nhận.',check:true}];}
 function gioList(){if(!Array.isArray(DATA.gio))DATA.gio=gioSeed();return DATA.gio;}
 function gioNameOf(g){if(g.pid&&g.pid!=='I1'&&P[g.pid])return P[g.pid].n;if(g.pid&&SPOUSE_BY_ID[g.pid])return SPOUSE_BY_ID[g.pid].n;return g.name||'(chưa ghi tên)';}
 function gioInfo(g){if(!g.pid)return '';if(g.pid==='I1')return 'Thủy tổ · đời 1';if(!P[g.pid]&&SPOUSE_BY_ID[g.pid]){const s=SPOUSE_BY_ID[g.pid];return spRole(g.pid)+' · '+(isFem(P[s.of])?'chồng':'vợ')+' của '+(P[s.of]?P[s.of].n:'');}const p=P[g.pid];return p?`Đời ${p.g} · chi ${CHI.indexOf(p.c)+1}`:'';}
 function nextGio(g,from){const t=from||today0();const ly=AL.s2l(t.getDate(),t.getMonth()+1,t.getFullYear())[2];
   for(const y of [ly,ly+1]){const d=AL.gioDate(g.d,g.m,y);if(d&&d>=t)return {date:d,ly:y};}return null;}
-function gioFor(pid){return gioList().find(g=>g.pid===pid);}
+/* lịch đầy đủ = mục đã nhập + mục tự tính từ ngày mất của thành viên và dâu rể */
+function gioAll(){const L=gioList(),have=new Set(L.map(g=>g.pid).filter(Boolean)),out=L.slice();
+  const add=(pid,name,d)=>{if(have.has(pid))return;const p=parseDeath(d);if(!p||!p.lunar)return;
+    out.push({id:'auto-'+pid,pid,name,d:p.lunar[0],m:p.lunar[1],auto:true,note:'Tự tính từ ngày mất: '+deathLong(d)+'.'});have.add(pid);};
+  Object.values(P).forEach(p=>{if(p.d)add(p.i,p.n,p.d);});
+  Object.values(SPOUSE_BY_ID).forEach(s=>{if(s.d&&s.n)add(s.i,s.n,s.d);});
+  return out;}
+function gioFor(pid){return gioAll().find(g=>g.pid===pid);}
 function gioTxt(pid){const g=gioFor(pid);return g?`${g.d}/${g.m} ÂL${g.check?' (cần xác nhận)':''}`:'';}
 function renderGio(){
   const t=today0(),[ld,lm,ly]=AL.s2l(t.getDate(),t.getMonth()+1,t.getFullYear());
   if(gioYear===null)gioYear=ly;
   $('gToday').innerHTML=`Hôm nay <b>${WD[t.getDay()]}, ${fmtD(t)}</b> · âm lịch <b>${ld} tháng ${AL.THANG[lm]}</b> năm <b>${AL.canChi(ly)}</b>`;
-  const L=gioList();
+  const L=gioAll();
   // sắp tới 90 ngày
   const up=L.map(g=>({g,n:nextGio(g,t)})).filter(x=>x.n).sort((a,b)=>a.n.date-b.n.date);
   const soon=up.filter(x=>(x.n.date-t)/864e5<=90);
@@ -877,19 +905,19 @@ function renderGio(){
     if(g.m!==lastM){h+=`<tr class="gm"><th colspan="5">Tháng ${AL.THANG[g.m]}</th></tr>`;lastM=g.m;}
     const past=dt&&dt<t&&gioYear===ly;
     h+=`<tr class="${past?'past':''}"><td class="num">${g.d}/${g.m}</td><td class="num">${dt?(dt.getDay()===0?'CN':'T'+(dt.getDay()+1))+' '+fmtD(dt):'—'}</td>
-      <td><b>${g.pid&&g.pid!=='I1'&&P[g.pid]?`<button class="lk" type="button" data-p="${g.pid}">${esc(gioNameOf(g))}</button>`:g.pid&&SPOUSE_BY_ID[g.pid]?`<button class="lk" type="button" data-sp="${esc(g.pid)}">${esc(gioNameOf(g))}</button>`:esc(gioNameOf(g))}</b>${g.check?' <span class="mk warn">Cần xác nhận</span>':''}<br><span class="meta">${esc(gioInfo(g))}</span></td>
+      <td><b>${g.pid&&g.pid!=='I1'&&P[g.pid]?`<button class="lk" type="button" data-p="${g.pid}">${esc(gioNameOf(g))}</button>`:g.pid&&SPOUSE_BY_ID[g.pid]?`<button class="lk" type="button" data-sp="${esc(g.pid)}">${esc(gioNameOf(g))}</button>`:esc(gioNameOf(g))}</b>${g.check?' <span class="mk warn">Cần xác nhận</span>':''}${g.auto?' <span class="mk">Theo ngày mất</span>':''}<br><span class="meta">${esc(gioInfo(g))}</span></td>
       <td>${g.host?'Lo giỗ: '+esc(g.host)+'<br>':''}${g.place?esc(g.place)+'<br>':''}<span class="meta">${esc(g.note||'')}</span></td>
-      <td class="ga">${isAdmin()?`<button class="btn sm" type="button" data-gedit="${g.id}">Sửa</button>`+(gioDel===g.id?`<span class="confirm">Xóa? <button class="btn solid sm" type="button" data-gdelok="${g.id}">Xóa</button><button class="btn sm" type="button" data-gdelno="1">Giữ</button></span>`:`<button class="btn sm" type="button" data-gdel="${g.id}">Xóa</button>`):`<button class="btn sm" type="button" data-gedit="${g.id}">Báo sửa</button>`}</td></tr>`;
+      <td class="ga">${isAdmin()?`<button class="btn sm" type="button" data-gedit="${g.id}">Sửa</button>`+(g.auto?'':gioDel===g.id?`<span class="confirm">Xóa? <button class="btn solid sm" type="button" data-gdelok="${g.id}">Xóa</button><button class="btn sm" type="button" data-gdelno="1">Giữ</button></span>`:`<button class="btn sm" type="button" data-gdel="${g.id}">Xóa</button>`):`<button class="btn sm" type="button" data-gedit="${g.id}">Báo sửa</button>`}</td></tr>`;
   });
   $('gTable').innerHTML=h||'<tr><td colspan="5" class="meta">Chưa có ngày giỗ nào. Bấm "+ Thêm ngày giỗ" để nhập.</td></tr>';
   $('gAdd').textContent=isAdmin()?'+ Thêm ngày giỗ':'+ Gửi bổ sung ngày giỗ';
-  $('gSug').hidden=!isAdmin();
+  $('gSug').hidden=true;
   postHeight();
 }
 function showGio(on){$('gioPanel').hidden=!on;$('phPanel').hidden=on;if(on){$('tt').hidden=true;renderGio();}postHeight();}
 /* biểu mẫu */
 function gioOpen(id){
-  const g=id?gioList().find(x=>x.id===id):null;gioEdit=g?g.id:null;
+  const g=id?gioAll().find(x=>x.id===id):null;gioEdit=g&&!g.auto?g.id:null;
   $('gForm').hidden=false;$('gErr').textContent='';$('gOut').hidden=true;
   $('gFormT').textContent=g?(isAdmin()?'Sửa ngày giỗ':'Báo sửa ngày giỗ'):(isAdmin()?'Thêm ngày giỗ':'Gửi bổ sung ngày giỗ');
   $('gWho').value=g?(g.pid&&g.pid!=='I1'&&(P[g.pid]||SPOUSE_BY_ID[g.pid])?`${gioNameOf(g)} · ${g.pid}`:g.name):'';
@@ -937,13 +965,21 @@ $('gIcs').onclick=()=>{
   const t=today0(),ly=AL.s2l(t.getDate(),t.getMonth()+1,t.getFullYear())[2],p2=n=>String(n).padStart(2,'0'),ymd=d=>d.getFullYear()+p2(d.getMonth()+1)+p2(d.getDate());
   const esc2=s=>String(s).replace(/[\;,]/g,m=>'\\'+m).replace(/\n/g,'\\n');
   let ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Gia pha ho Nguyen Dien Sanh//VI','CALSCALE:GREGORIAN','X-WR-CALNAME:Lịch giỗ họ Nguyễn Diên Sanh'];
-  gioList().forEach(g=>{for(let y=ly;y<ly+10;y++){const d=AL.gioDate(g.d,g.m,y);if(!d||d<t)continue;const e=new Date(d);e.setDate(e.getDate()+1);
+  gioAll().forEach(g=>{for(let y=ly;y<ly+10;y++){const d=AL.gioDate(g.d,g.m,y);if(!d||d<t)continue;const e=new Date(d);e.setDate(e.getDate()+1);
     ics.push('BEGIN:VEVENT','UID:'+g.id+'-'+y+'@giapha-diensanh','DTSTAMP:'+ymd(t)+'T000000Z','DTSTART;VALUE=DATE:'+ymd(d),'DTEND;VALUE=DATE:'+ymd(e),
       'SUMMARY:'+esc2('Giỗ '+gioNameOf(g)+' ('+g.d+'/'+g.m+' ÂL)'),'DESCRIPTION:'+esc2([g.host&&'Lo giỗ: '+g.host,g.place,g.note].filter(Boolean).join(' · ')),
       'BEGIN:VALARM','TRIGGER:-P1D','ACTION:DISPLAY','DESCRIPTION:'+esc2('Ngày mai giỗ '+gioNameOf(g)),'END:VALARM','END:VEVENT');}});
   ics.push('END:VCALENDAR');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([ics.join('\r\n')],{type:'text/calendar'}));a.download='lich-gio-ho-nguyen-dien-sanh.ics';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
   toast('Đã tải lịch giỗ 10 năm tới. Mở file để thêm vào lịch điện thoại, có nhắc trước 1 ngày.');};
+
+
+/* ô ngày mất có chọn lịch dương/âm */
+const AMRE=/\s*(ÂL|AL|âm lịch|âm)\s*$/i;
+function setDied(id,v){const am=AMRE.test(String(v||''))||/(^|\s)(ÂL|AL)(\s|$)/i.test(String(v||''));$(id).value=String(v||'').replace(/\s*(ÂL|AL|âm lịch|âm)\b/ig,'').trim();$(id+'Cal').value=am?'am':'duong';diedConv(id);}
+function getDied(id){const v=$(id).value.trim();return v&&$(id+'Cal').value==='am'?v+' ÂL':v;}
+function diedConv(id){const v=getDied(id);$(id+'Conv').textContent=v?'→ '+deathLong(v)+(parseDeath(v)?.lunar?' · giỗ ngày '+parseDeath(v).lunar[0]+'/'+parseDeath(v).lunar[1]+' ÂL':''):'';}
+['fDied','spDied'].forEach(id=>{$(id).addEventListener('input',()=>diedConv(id));$(id+'Cal').addEventListener('change',()=>diedConv(id));});
 
 /* ================= DÂU / RỂ ================= */
 let selSp=null,spEdit=null,spDel=null;
@@ -956,7 +992,7 @@ function showSpouse(sid){
   const s=SPOUSE_BY_ID[sid];if(!s){return;}selSp=sid;const h=P[s.of],x=spX(sid),kids=spKids(sid),role=spRole(sid);
   let o=`<div class="big">${esc(s.n)} <span class="mk sp">${role}</span></div><dl>`;
   o+=`<dt>${role==='Dâu'?'Chồng':'Vợ'}</dt><dd>${h?`<button class="lk" type="button" data-p="${h.i}">${esc(h.n)}</button> <span class="meta">(đời ${h.g})</span>`:'—'}</dd>`;
-  if(s.b)o+=`<dt>Sinh</dt><dd>${esc(s.b)}</dd>`;if(s.d)o+=`<dt>Mất</dt><dd>${esc(String(s.d).replace(/ AL$/,' ÂL'))}</dd>`;
+  if(s.b)o+=`<dt>Sinh</dt><dd>${esc(s.b)}</dd>`;if(s.d)o+=`<dt>Mất</dt><dd>${esc(deathLong(s.d))}</dd>`;
   if(gioTxt(sid))o+=`<dt>Ngày giỗ</dt><dd>${esc(gioTxt(sid))}</dd>`;
   if(x.que)o+=`<dt>Quê quán</dt><dd>${esc(x.que)}</dd>`;if(x.pa)o+=`<dt>Cha mẹ đẻ</dt><dd>${esc(x.pa)}</dd>`;
   if(kids.length)o+=`<dt>Con chung</dt><dd>${kids.map(k=>`<button class="lk" type="button" data-p="${k}">${esc(P[k].n)}</button>`).join('<br>')}</dd>`;
@@ -968,17 +1004,17 @@ function showSpouse(sid){
   $('prof').innerHTML=o;$('prof').closest('section').querySelector('h2').textContent='Hồ sơ '+role.toLowerCase();postHeight();
 }
 function openSp(mode,target){ // mode 'fix' (target=spouse id) | 'add' (target=member id)
-  spEdit={mode,target};const f=$('spForm');f.reset();$('spCard').hidden=false;$('spErr').textContent='';$('spOut').hidden=true;
+  spEdit={mode,target};const f=$('spForm');f.reset();$('spDiedConv').textContent='';$('spCard').hidden=false;$('spErr').textContent='';$('spOut').hidden=true;
   if(mode==='add'){const p=P[target];$('spTitle').textContent=(isAdmin()?'Thêm ':'Gửi bổ sung ')+(isFem(p)?'chồng':'vợ')+' cho '+p.n;}
   else{const s=SPOUSE_BY_ID[target],x=spX(target);$('spTitle').textContent=(isAdmin()?'Sửa ':'Báo sửa ')+spRole(target).toLowerCase()+' '+s.n;
-    $('spName').value=s.n||'';$('spBorn').value=s.b||'';$('spDied').value=s.d||'';$('spQue').value=x.que||'';$('spPa').value=x.pa||'';$('spNote').value=x.note||'';}
+    $('spName').value=s.n||'';$('spBorn').value=s.b||'';setDied('spDied',s.d||'');$('spQue').value=x.que||'';$('spPa').value=x.pa||'';$('spNote').value=x.note||'';}
   $('spFrom').parentElement.hidden=isAdmin();
   $('spSave').textContent=isAdmin()?'Lưu':'Tạo tin nhắn';
   scrollToEl($('spCard'));setTimeout(()=>$('spName').focus({preventScroll:true}),50);postHeight();
 }
 $('spCancel').onclick=()=>{$('spCard').hidden=true;spEdit=null;postHeight();};
 $('spForm').addEventListener('submit',async e=>{
-  e.preventDefault();if(!spEdit)return;const v=k=>$(k).value.trim();
+  e.preventDefault();if(!spEdit)return;const v=k=>k==='spDied'?getDied('spDied'):$(k).value.trim();
   if(!v('spName')){$('spErr').textContent='Cần nhập họ và tên.';return;}
   const extra={que:v('spQue'),pa:v('spPa'),note:v('spNote')};
   if(isAdmin()){
@@ -1043,7 +1079,7 @@ function layout(root,mode){
 function nodeSVG(n,selId){
   const id=n.id,col=colorOf(id),isRoot=n.k==='root';
   const nm=id==='I1'?ROOT_NAME:P[id].n,g=genOf(id),fem=id!=='I1'&&/ Thị /.test(' '+nm+' ');
-  const tip=id==='I1'?'Thủy tổ: Cụ Nguyễn Văn Liên (Cụ Tế) · Đời 1':nm+' · Đời '+g+(P[id].b?' · Sinh '+P[id].b:'')+(P[id].d?' · Mất '+P[id].d:'');
+  const tip=id==='I1'?'Thủy tổ: Cụ Nguyễn Văn Liên (Cụ Tế) · Đời 1':nm+' · Đời '+g+(P[id].b?' · Sinh '+P[id].b:'')+(P[id].d?' · Mất '+deathShort(P[id].d):'');
   let s=`<g class="cn" data-cp="${id}" tabindex="0" role="button" aria-label="${esc(tip)}"><title>${esc(tip)}</title>`;
   const st=id===selId?'#c4161c':isRoot?'#c4161c':'#c9a24f',sw=id===selId?3:isRoot?2:1;
   if(isRoot){s+=`<ellipse cx="${n.cx}" cy="${n.y+n.h/2}" rx="${n.w/2}" ry="${n.h/2}" fill="#fff4dc" stroke="${st}" stroke-width="${sw}"/>`;
@@ -1101,7 +1137,7 @@ function renderCInfo(){
     <dl><dt>Các bà</dt><dd>Phan Thị Nhạn, Nguyễn Thị Đội, Phan Thị Khâm, Võ Thị Hằng</dd><dt>Con trai</dt><dd>8 chi phái</dd><dt>Hậu duệ</dt><dd>${descCount('I1')} người trên phả</dd></dl>`;return;}
   const p=P[id],sps=(SP[id]||[]).filter(s=>s.n),kids=KIDS[id]||[];
   let h=`<div class="nm">${esc(p.n)}<small>Đời ${p.g} (${han(p.g)}世) · chi thứ ${CHI.indexOf(p.c)+1} · mã ${esc(p.i)}</small></div><dl>`;
-  if(p.b)h+=`<dt>Sinh</dt><dd>${esc(p.b)}</dd>`;if(p.d)h+=`<dt>Mất</dt><dd>${esc(String(p.d).replace(/ AL$/,' ÂL'))}</dd>`;
+  if(p.b)h+=`<dt>Sinh</dt><dd>${esc(p.b)}</dd>`;if(p.d)h+=`<dt>Mất</dt><dd>${esc(deathLong(p.d))}</dd>`;
   if(gioTxt(id))h+=`<dt>Ngày giỗ</dt><dd>${esc(gioTxt(id))}</dd>`;
   h+=`<dt>Cha mẹ</dt><dd>${parentName(p)}</dd>`;
   if(sps.length)h+=`<dt>Hôn phối</dt><dd>${sps.map(spLink).join(', ')}</dd>`;
