@@ -21,6 +21,7 @@
       var a=as[i],h=a.getAttribute('href')||'',m=h.match(/honguyendiensanh-ht\.com\/[a-z_]+\.php\?(?:[^#]*&)?personID=(I\d+)/i);
       if(m){mark(a,m[1]);continue;}
       if(a.closest&&a.closest('#navi')&&(/\/search\/label\/GIA(%20|\s)PH(Ả|%E1%BA%A2)/i.test(h)||/\/p\/gia-pha\.html/.test(h))){mark(a,'');continue;}
+      if(a.closest&&a.closest('#navi')&&/\/search\/label\/NG(À|%C3%80)Y(%20|\s)GI(Ỗ|%E1%BB%96)/i.test(h)){mark(a,'ngay-gio');continue;}
       if(/^https?:\/\/(www\.)?honguyendiensanh-ht\.com\/?$/i.test(h)&&/gia\s*ph/i.test(a.textContent)){mark(a,'');}
     }
   }

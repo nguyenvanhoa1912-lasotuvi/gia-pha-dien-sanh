@@ -532,7 +532,9 @@ function start(){
   if(P[h]&&h!==cur)goTo(h);
 }
 let pendingGoto=null;
-window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(DATA&&P[h])goTo(h);});
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(!DATA)return;
+  if(h==='ngay-gio'){showGio(true);document.querySelectorAll('.menu .on').forEach(x=>x.classList.remove('on'));const g=document.querySelector('.menu [data-go="ngay-gio"]');if(g)g.classList.add('on');scrollToEl($('ngay-gio'));return;}
+  if(P[h])goTo(h);});
 function renderAll(){renderChi();render();showProf(sel);setDirty(dirty);postHeight();}
 
 /* ---------- cột phải: 8 chi + con ---------- */
