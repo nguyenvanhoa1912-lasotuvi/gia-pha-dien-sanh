@@ -197,6 +197,33 @@ form.f .row{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;align-items:cen
 .cn .new{display:inline-block;width:6px;height:6px;border-radius:50%;background:#2e7d32;margin:0 2px}
 .cn .more{font-weight:700;color:var(--cc)}
 .listonly{display:inline-flex;gap:6px}
+/* lịch giỗ */
+.gtoday{background:#fff8d6;border:1px solid #ecd58a;padding:8px 10px;margin:10px 0;font-size:13.5px}
+.gtoday b{color:var(--red)}
+.gform{background:#fffdf4;border:1px solid #ead9a6;padding:10px;margin-bottom:10px}
+.gform .chk{flex-direction:row;align-items:center;gap:6px}
+.gsug{background:#f3f7fc;border:1px solid #cfe0f3;padding:8px 10px;margin-bottom:10px;font-size:13px}
+.gsug ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.gsoon{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.gcard{display:flex;gap:10px;align-items:center;border:1px solid var(--line);background:#fff;padding:6px 8px;border-left:4px solid var(--blue-t)}
+.gcard.near{border-left-color:var(--red);background:#fff6f5}
+.gcard .gd{display:flex;flex-direction:column;align-items:center;min-width:52px;border-right:1px dotted var(--line);padding-right:8px}
+.gcard .gd b{font:700 18px var(--f-head);color:var(--red);font-variant-numeric:tabular-nums}
+.gcard .gd span{font-size:11px;color:var(--ink-d)}
+.gcard .gi{display:flex;flex-direction:column;min-width:0}
+.gcard .gi b{color:var(--blue);font-size:13.5px}
+.gcard .gi span{font-size:12px;color:var(--ink-d)}
+.gcard em{color:var(--red);font-style:normal;font-weight:700}
+.gyh{display:flex;align-items:center;gap:8px}
+.gtab{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+.gtab th,.gtab td{border-bottom:1px solid #eee;padding:6px;text-align:left;vertical-align:top}
+.gtab thead th{background:#f6f6f6;font-size:12px;color:var(--ink-d);text-transform:uppercase}
+.gtab tr.gm th{background:linear-gradient(var(--red-l),var(--red));color:#fff;font:700 12.5px var(--f-head);text-transform:uppercase;letter-spacing:.03em}
+.gtab td.num{white-space:nowrap;font-variant-numeric:tabular-nums}
+.gtab tr.past td{opacity:.55}
+.gtab td.ga{white-space:nowrap}
+.gtab .confirm{display:inline-flex;margin:0 0 0 4px}
+.mk.warn{color:#b26a00;border-color:#e0b25b}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
 .embed .menu,.embed footer .wrap>span:first-child{display:none}
@@ -221,7 +248,7 @@ footer a,footer .lk{color:#fff}
       <li><a href="#phu-tu" data-go="phu-tu">Thế phổ tự</a></li>
       <li><a href="#thuy-to" data-go="thuy-to">Thủy tổ</a></li>
       <li><a href="#pha-he" data-go="pha-he" class="on">Gia phả</a></li>
-      <li><a href="https://honguyendiensanh-ht.blogspot.com/search/label/NG%C3%80Y%20GI%E1%BB%96" target="_top">Ngày giỗ</a></li>
+      <li><a href="#ngay-gio" data-go="ngay-gio">Ngày giỗ</a></li>
       <li><a href="https://honguyendiensanh-ht.com/" target="_blank" rel="noopener">Phả gốc TNG</a></li>
     </ul>
   </nav>
@@ -262,6 +289,7 @@ footer a,footer .lk{color:#fff}
       <div class="post">
         <div id="tt"></div>
 
+        <div id="phPanel">
         <h3 id="pha-he">Phả hệ</h3>
         <h2 class="c" id="treeTitle">Con cháu cụ</h2>
         <div class="date" id="treeSub" style="text-align:center;margin-top:4px"></div>
@@ -290,6 +318,36 @@ footer a,footer .lk{color:#fff}
           <div class="cview" id="cView"><div class="csize" id="cSize"><div class="cinner" id="cInner"></div></div></div>
         </div>
         <div class="tree" id="tree" hidden></div>
+        </div>
+        <div id="gioPanel" hidden>
+          <h3 id="ngay-gio">Ngày giỗ</h3>
+          <h2 class="c">Lịch đám giỗ hằng năm</h2>
+          <p class="gtoday" id="gToday"></p>
+          <div class="toolbar">
+            <button class="btn solid sm" type="button" id="gAdd">+ Thêm ngày giỗ</button>
+            <button class="btn sm" type="button" id="gSug" hidden>Gợi ý từ ngày mất trên phả</button>
+            <button class="btn sm" type="button" id="gIcs">Đưa lịch vào điện thoại (.ics)</button>
+          </div>
+          <form class="f gform" id="gForm" hidden novalidate>
+            <b class="full" id="gFormT" style="color:var(--blue)">Thêm ngày giỗ</b>
+            <label class="full">Người được giỗ<input id="gWho" list="gPeople" autocomplete="off" placeholder="Gõ tên để chọn từ gia phả, hoặc nhập tự do"></label>
+            <datalist id="gPeople"></datalist>
+            <label>Ngày (âm lịch)<select id="gD"><option value="">—</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option></select></label>
+            <label>Tháng (âm lịch)<select id="gM"><option value="">—</option><option value="1">Giêng</option><option value="2">Hai</option><option value="3">Ba</option><option value="4">Tư</option><option value="5">Năm</option><option value="6">Sáu</option><option value="7">Bảy</option><option value="8">Tám</option><option value="9">Chín</option><option value="10">Mười</option><option value="11">Một (11)</option><option value="12">Chạp</option></select></label>
+            <label>Người lo giỗ<input id="gHost" autocomplete="off" placeholder="vd: gia đình anh Hùng"></label>
+            <label>Nơi cúng<input id="gPlace" autocomplete="off" placeholder="vd: nhà thờ họ Diên Sanh"></label>
+            <label class="full">Ghi chú<input id="gNote" autocomplete="off" placeholder="Nguồn thông tin, lưu ý…"></label>
+            <label class="full chk"><input type="checkbox" id="gCheck"> Ngày này cần xác nhận lại</label>
+            <div class="row"><button class="btn solid sm" type="submit" id="gSave">Lưu ngày giỗ</button><button class="btn sm" type="button" id="gCancel">Hủy</button><span class="err" id="gErr" role="alert"></span></div>
+            <p class="hint full">Tháng thiếu (chỉ có 29 ngày) thì giỗ ngày 30 được tính vào ngày 29. Tháng nhuận cúng theo tháng chính.</p>
+            <textarea id="gOut" class="full" hidden readonly aria-label="Tin nhắn ngày giỗ" style="width:100%;min-height:100px"></textarea>
+          </form>
+          <div id="gSugBox" class="gsug" hidden><b>Gợi ý ngày giỗ (đổi từ ngày mất dương lịch sang âm lịch)</b><ul id="gSugList"></ul></div>
+          <h3>Sắp tới (90 ngày)</h3>
+          <ul class="gsoon" id="gSoon"></ul>
+          <h3 class="gyh"><button class="btn sm" type="button" data-gyear="-1" aria-label="Năm trước">‹</button> <span id="gYearLbl"></span> <button class="btn sm" type="button" data-gyear="1" aria-label="Năm sau">›</button></h3>
+          <div style="overflow-x:auto"><table class="gtab"><thead><tr><th>Ngày âm</th><th>Dương lịch</th><th>Người được giỗ</th><th>Lo giỗ · nơi cúng · ghi chú</th><th></th></tr></thead><tbody id="gTable"></tbody></table></div>
+        </div>
       </div>
     </main>
 
@@ -468,7 +526,9 @@ function start(){
   $('adminBar').hidden=!isAdmin();
   setView(VIEW);renderAll();
   if(inFrame)try{parent.postMessage({giapha:'role',role:ROLE},'*');}catch(_){}
+  gioList();
   const h=pendingGoto||(location.hash||'').slice(1);pendingGoto=null;
+  if(h==='ngay-gio'){showGio(true);const g=document.querySelector('.menu [data-go="ngay-gio"]');document.querySelectorAll('.menu .on').forEach(x=>x.classList.remove('on'));if(g)g.classList.add('on');}
   if(P[h]&&h!==cur)goTo(h);
 }
 let pendingGoto=null;
@@ -540,6 +600,7 @@ function showProf(id){
   h+=`<dt>Mã</dt><dd>${esc(p.i)}</dd>`;
   if(p.b)h+=`<dt>Sinh</dt><dd>${esc(p.b)}</dd>`;
   if(p.d)h+=`<dt>Mất</dt><dd>${esc(String(p.d).replace(/ AL$/,' ÂL'))}</dd>`;
+  if(gioTxt(id))h+=`<dt>Ngày giỗ</dt><dd>${esc(gioTxt(id))}</dd>`;
   h+=`<dt>Cha mẹ</dt><dd>${parentName(p)}</dd>`;
   if(sps.length)h+=`<dt>Hôn phối</dt><dd>${sps.map(s=>esc(s.n)).join('<br>')}</dd>`;
   if(kids.length)h+=`<dt>Con</dt><dd>${kids.map(k=>`<button class="lk" type="button" data-p="${k}">${esc(P[k].n)}</button>`).join('<br>')}</dd>`;
@@ -714,8 +775,10 @@ document.addEventListener('click',e=>{
 });
 document.querySelector('.menu').addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(!a)return;e.preventDefault();if($('app').hidden){$('lkPw').focus();return;}
   document.querySelectorAll('.menu .on').forEach(x=>x.classList.remove('on'));a.classList.add('on');
-  showTT(a.dataset.go==='phu-tu'||a.dataset.go==='thuy-to');scrollToEl($(a.dataset.go));});
-function showTT(on){$('tt').hidden=!on;const g=document.querySelector('.menu [data-go="pha-he"]');
+  showGio(a.dataset.go==='ngay-gio');if(a.dataset.go!=='ngay-gio')showTT(a.dataset.go==='phu-tu'||a.dataset.go==='thuy-to');
+  if(a.dataset.go==='ngay-gio'){document.querySelectorAll('.menu .on').forEach(x=>x.classList.remove('on'));a.classList.add('on');}
+  scrollToEl($(a.dataset.go));});
+function showTT(on){$('tt').hidden=!on;if($('gioPanel')&&!$('gioPanel').hidden&&!on){$('gioPanel').hidden=true;$('phPanel').hidden=false;}const g=document.querySelector('.menu [data-go="pha-he"]');
   if(!on){document.querySelectorAll('.menu .on').forEach(x=>x.classList.remove('on'));if(g)g.classList.add('on');}postHeight();}
 $('expand').onclick=()=>{collapsed.clear();render();};
 $('collapse').onclick=()=>{(KIDS[cur]||[]).forEach(k=>{if(KIDS[k])collapsed.add(k);});render();};
@@ -728,6 +791,138 @@ document.addEventListener('click',e=>{const a=e.target.closest('[data-home]');if
     dirty=0;window.close();setTimeout(()=>{location.href=home;},300);return;}
   location.href=home;});
 function toast(t){const el=$('toast');el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,3600);}
+
+/* ===== Âm lịch Việt Nam (thuật toán Hồ Ngọc Đức, múi giờ +7) ===== */
+const AL=(()=>{const PI=Math.PI,TZ=7,INT=Math.floor;
+function jdFromDate(dd,mm,yy){const a=INT((14-mm)/12),y=yy+4800-a,m=mm+12*a-3;let jd=dd+INT((153*m+2)/5)+365*y+INT(y/4)-INT(y/100)+INT(y/400)-32045;if(jd<2299161)jd=dd+INT((153*m+2)/5)+365*y+INT(y/4)-32083;return jd;}
+function jdToDate(jd){let a,b,c;if(jd>2299160){a=jd+32044;b=INT((4*a+3)/146097);c=a-INT((b*146097)/4);}else{b=0;c=jd+32082;}const d=INT((4*c+3)/1461),e=c-INT((1461*d)/4),m=INT((5*e+2)/153);return [e-INT((153*m+2)/5)+1,m+3-12*INT(m/10),b*100+d-4800+INT(m/10)];}
+function newMoon(k){const T=k/1236.85,T2=T*T,T3=T2*T,dr=PI/180;let J=2415020.75933+29.53058868*k+0.0001178*T2-0.000000155*T3;J+=0.00033*Math.sin((166.56+132.87*T-0.009173*T2)*dr);
+ const M=359.2242+29.10535608*k-0.0000333*T2-0.00000347*T3,Mp=306.0253+385.81691806*k+0.0107306*T2+0.00001236*T3,F=21.2964+390.67050646*k-0.0016528*T2-0.00000239*T3;
+ let C=(0.1734-0.000393*T)*Math.sin(M*dr)+0.0021*Math.sin(2*dr*M);C=C-0.4068*Math.sin(Mp*dr)+0.0161*Math.sin(dr*2*Mp);C=C-0.0004*Math.sin(dr*3*Mp);
+ C=C+0.0104*Math.sin(dr*2*F)-0.0051*Math.sin(dr*(M+Mp));C=C-0.0074*Math.sin(dr*(M-Mp))+0.0004*Math.sin(dr*(2*F+M));C=C-0.0004*Math.sin(dr*(2*F-M))-0.0006*Math.sin(dr*(2*F+Mp));
+ C=C+0.0010*Math.sin(dr*(2*F-Mp))+0.0005*Math.sin(dr*(2*Mp+M));const dt=T<-11?0.001+0.000839*T+0.0002261*T2-0.00000845*T3-0.000000081*T*T3:-0.000278+0.000265*T+0.000262*T2;return J+C-dt;}
+function sunLong(jdn){const T=(jdn-2451545.0)/36525,T2=T*T,dr=PI/180,M=357.52910+35999.05030*T-0.0001559*T2-0.00000048*T*T2,L0=280.46645+36000.76983*T+0.0003032*T2;
+ let DL=(1.914600-0.004817*T-0.000014*T2)*Math.sin(dr*M);DL=DL+(0.019993-0.000101*T)*Math.sin(dr*2*M)+0.000290*Math.sin(dr*3*M);let L=(L0+DL)*dr;L=L-PI*2*INT(L/(PI*2));return L;}
+const getSun=(d)=>INT(sunLong(d-0.5-TZ/24)/PI*6),getNM=(k)=>INT(newMoon(k)+0.5+TZ/24);
+function month11(yy){const off=jdFromDate(31,12,yy)-2415021,k=INT(off/29.530588853);let nm=getNM(k);if(getSun(nm)>=9)nm=getNM(k-1);return nm;}
+function leapOff(a11){const k=INT((a11-2415021.076998695)/29.530588853+0.5);let last=0,i=1,arc=getSun(getNM(k+i));do{last=arc;i++;arc=getSun(getNM(k+i));}while(arc!=last&&i<14);return i-1;}
+function s2l(dd,mm,yy){const dn=jdFromDate(dd,mm,yy),k=INT((dn-2415021.076998695)/29.530588853);let ms=getNM(k+1);if(ms>dn)ms=getNM(k);
+ let a11=month11(yy),b11=a11,ly;if(a11>=ms){ly=yy;a11=month11(yy-1);}else{ly=yy+1;b11=month11(yy+1);}
+ const ld=dn-ms+1,diff=INT((ms-a11)/29);let leap=0,lm=diff+11;if(b11-a11>365){const lo=leapOff(a11);if(diff>=lo){lm=diff+10;if(diff==lo)leap=1;}}
+ if(lm>12)lm-=12;if(lm>=11&&diff<4)ly-=1;return [ld,lm,ly,leap];}
+function l2s(ld,lm,ly,leap){let a11,b11;if(lm<11){a11=month11(ly-1);b11=month11(ly);}else{a11=month11(ly);b11=month11(ly+1);}
+ const k=INT(0.5+(a11-2415021.076998695)/29.530588853);let off=lm-11;if(off<0)off+=12;
+ if(b11-a11>365){const lo=leapOff(a11);let lpm=lo-2;if(lpm<0)lpm+=12;if(leap&&lm!=lpm)return null;else if(leap||off>=lo)off+=1;}
+ return jdToDate(getNM(k+off)+ld-1);}
+const CAN=['Canh','Tân','Nhâm','Quý','Giáp','Ất','Bính','Đinh','Mậu','Kỷ'],CHIc=['Thân','Dậu','Tuất','Hợi','Tý','Sửu','Dần','Mão','Thìn','Tỵ','Ngọ','Mùi'];
+const canChi=y=>CAN[y%10]+' '+CHIc[y%12];
+const THANG=['','Giêng','Hai','Ba','Tư','Năm','Sáu','Bảy','Tám','Chín','Mười','Một','Chạp'];
+/* ngày dương của ngày giỗ (ngày d tháng m âm) trong năm âm ly; tháng thiếu thì lấy ngày 29 */
+function gioDate(d,m,ly){let r=l2s(d,m,ly,0);if(!r)return null;if(d===30){const back=s2l(r[0],r[1],r[2]);if(back[0]!==30||back[1]!==m)r=l2s(29,m,ly,0);}return new Date(r[2],r[1]-1,r[0]);}
+return {s2l,l2s,canChi,THANG,gioDate};})();
+
+/* ================= LỊCH GIỖ HẰNG NĂM ================= */
+const WD=['Chủ nhật','Thứ hai','Thứ ba','Thứ tư','Thứ năm','Thứ sáu','Thứ bảy'];
+let gioYear=null,gioEdit=null,gioDel=null;
+const fmtD=d=>`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+const today0=()=>{const t=new Date();return new Date(t.getFullYear(),t.getMonth(),t.getDate());};
+function gioSeed(){return [
+  {id:'g-I1',pid:'I1',name:'Cụ Tế · Nguyễn Văn Liên (Thủy tổ)',d:12,m:3,place:'',host:'',note:'Theo ghi chú trên phả gốc TNG.'},
+  {id:'g-I160',pid:'I160',name:'Nguyễn Thị Lãnh',d:25,m:9,place:'',host:'',note:'Theo phả gốc: mất 25/9 ÂL.'},
+  {id:'g-I6',pid:'I6',name:'Cụ Hường · Nguyễn Văn Quỳ',d:11,m:7,place:'',host:'',note:'Phả gốc ghi "Mất 11-07", chưa rõ âm hay dương lịch. Cần xác nhận.',check:true}];}
+function gioList(){if(!Array.isArray(DATA.gio))DATA.gio=gioSeed();return DATA.gio;}
+function gioNameOf(g){if(g.pid&&g.pid!=='I1'&&P[g.pid])return P[g.pid].n;return g.name||'(chưa ghi tên)';}
+function gioInfo(g){if(!g.pid)return '';if(g.pid==='I1')return 'Thủy tổ · đời 1';const p=P[g.pid];return p?`Đời ${p.g} · chi ${CHI.indexOf(p.c)+1}`:'';}
+function nextGio(g,from){const t=from||today0();const ly=AL.s2l(t.getDate(),t.getMonth()+1,t.getFullYear())[2];
+  for(const y of [ly,ly+1]){const d=AL.gioDate(g.d,g.m,y);if(d&&d>=t)return {date:d,ly:y};}return null;}
+function gioFor(pid){return gioList().find(g=>g.pid===pid);}
+function gioTxt(pid){const g=gioFor(pid);return g?`${g.d}/${g.m} ÂL${g.check?' (cần xác nhận)':''}`:'';}
+function renderGio(){
+  const t=today0(),[ld,lm,ly]=AL.s2l(t.getDate(),t.getMonth()+1,t.getFullYear());
+  if(gioYear===null)gioYear=ly;
+  $('gToday').innerHTML=`Hôm nay <b>${WD[t.getDay()]}, ${fmtD(t)}</b> · âm lịch <b>${ld} tháng ${AL.THANG[lm]}</b> năm <b>${AL.canChi(ly)}</b>`;
+  const L=gioList();
+  // sắp tới 90 ngày
+  const up=L.map(g=>({g,n:nextGio(g,t)})).filter(x=>x.n).sort((a,b)=>a.n.date-b.n.date);
+  const soon=up.filter(x=>(x.n.date-t)/864e5<=90);
+  $('gSoon').innerHTML=soon.length?soon.map(({g,n})=>{const days=Math.round((n.date-t)/864e5);
+    return `<li class="gcard${days<=7?' near':''}"><div class="gd"><b>${n.date.getDate()}/${n.date.getMonth()+1}</b><span>${WD[n.date.getDay()]}</span></div>
+      <div class="gi"><b>${esc(gioNameOf(g))}</b><span>${g.d}/${g.m} ÂL · ${days===0?'<em>Hôm nay</em>':days===1?'<em>Ngày mai</em>':'còn '+days+' ngày'}${g.host?' · Lo giỗ: '+esc(g.host):''}${g.place?' · '+esc(g.place):''}</span></div></li>`;}).join('')
+    :'<li class="meta">Không có đám giỗ nào trong 90 ngày tới.</li>';
+  // cả năm theo tháng âm
+  $('gYearLbl').textContent=`Năm ${AL.canChi(gioYear)} (âm lịch ${gioYear})`;
+  const rows=L.map(g=>({g,dt:AL.gioDate(g.d,g.m,gioYear)})).sort((a,b)=>(a.g.m-b.g.m)||(a.g.d-b.g.d));
+  let h='';let lastM=0;
+  rows.forEach(({g,dt})=>{
+    if(g.m!==lastM){h+=`<tr class="gm"><th colspan="5">Tháng ${AL.THANG[g.m]}</th></tr>`;lastM=g.m;}
+    const past=dt&&dt<t&&gioYear===ly;
+    h+=`<tr class="${past?'past':''}"><td class="num">${g.d}/${g.m}</td><td class="num">${dt?(dt.getDay()===0?'CN':'T'+(dt.getDay()+1))+' '+fmtD(dt):'—'}</td>
+      <td><b>${g.pid&&g.pid!=='I1'&&P[g.pid]?`<button class="lk" type="button" data-p="${g.pid}">${esc(gioNameOf(g))}</button>`:esc(gioNameOf(g))}</b>${g.check?' <span class="mk warn">Cần xác nhận</span>':''}<br><span class="meta">${esc(gioInfo(g))}</span></td>
+      <td>${g.host?'Lo giỗ: '+esc(g.host)+'<br>':''}${g.place?esc(g.place)+'<br>':''}<span class="meta">${esc(g.note||'')}</span></td>
+      <td class="ga">${isAdmin()?`<button class="btn sm" type="button" data-gedit="${g.id}">Sửa</button>`+(gioDel===g.id?`<span class="confirm">Xóa? <button class="btn solid sm" type="button" data-gdelok="${g.id}">Xóa</button><button class="btn sm" type="button" data-gdelno="1">Giữ</button></span>`:`<button class="btn sm" type="button" data-gdel="${g.id}">Xóa</button>`):`<button class="btn sm" type="button" data-gedit="${g.id}">Báo sửa</button>`}</td></tr>`;
+  });
+  $('gTable').innerHTML=h||'<tr><td colspan="5" class="meta">Chưa có ngày giỗ nào. Bấm "+ Thêm ngày giỗ" để nhập.</td></tr>';
+  $('gAdd').textContent=isAdmin()?'+ Thêm ngày giỗ':'+ Gửi bổ sung ngày giỗ';
+  $('gSug').hidden=!isAdmin();
+  postHeight();
+}
+function showGio(on){$('gioPanel').hidden=!on;$('phPanel').hidden=on;if(on){$('tt').hidden=true;renderGio();}postHeight();}
+/* biểu mẫu */
+function gioOpen(id){
+  const g=id?gioList().find(x=>x.id===id):null;gioEdit=g?g.id:null;
+  $('gForm').hidden=false;$('gErr').textContent='';$('gOut').hidden=true;
+  $('gFormT').textContent=g?(isAdmin()?'Sửa ngày giỗ':'Báo sửa ngày giỗ'):(isAdmin()?'Thêm ngày giỗ':'Gửi bổ sung ngày giỗ');
+  $('gWho').value=g?(g.pid&&g.pid!=='I1'&&P[g.pid]?`${P[g.pid].n} · ${g.pid}`:g.name):'';
+  $('gD').value=g?g.d:'';$('gM').value=g?g.m:'';$('gPlace').value=g?g.place||'':'';$('gHost').value=g?g.host||'':'';$('gNote').value=g?g.note||'':'';$('gCheck').checked=!!(g&&g.check);
+  $('gSave').textContent=isAdmin()?'Lưu ngày giỗ':'Tạo tin nhắn';
+  $('gForm').scrollIntoView({block:'nearest'});setTimeout(()=>$('gWho').focus({preventScroll:true}),50);postHeight();
+}
+function gioDatalist(){$('gPeople').innerHTML='<option value="Cụ Tế · Nguyễn Văn Liên · I1"></option>'+Object.values(P).map(p=>`<option value="${esc(p.n)} · ${p.i}">Đời ${p.g} · chi ${CHI.indexOf(p.c)+1}</option>`).join('');}
+$('gAdd').onclick=()=>{gioDatalist();gioOpen(null);};
+$('gCancel').onclick=()=>{$('gForm').hidden=true;gioEdit=null;postHeight();};
+$('gForm').addEventListener('submit',async e=>{
+  e.preventDefault();const who=$('gWho').value.trim(),d=+$('gD').value,m=+$('gM').value;
+  if(!who){$('gErr').textContent='Cần nhập người được giỗ.';return;}
+  if(!(d>=1&&d<=30)||!(m>=1&&m<=12)){$('gErr').textContent='Chọn ngày (1–30) và tháng âm lịch.';return;}
+  const mm=who.match(/·\s*(I\d+|N[0-9a-z]+)\s*$/i);const pid=mm&&(mm[1]==='I1'||P[mm[1]])?mm[1]:'';
+  const rec={pid,name:pid?(pid==='I1'?'Cụ Tế · Nguyễn Văn Liên (Thủy tổ)':P[pid].n):who,d,m,place:$('gPlace').value.trim(),host:$('gHost').value.trim(),note:$('gNote').value.trim(),check:$('gCheck').checked};
+  if(isAdmin()){
+    const L=gioList();if(pid&&L.some(x=>x.pid===pid&&x.id!==gioEdit)){$('gErr').textContent='Người này đã có ngày giỗ trong lịch. Hãy sửa dòng có sẵn.';return;}
+    if(gioEdit){Object.assign(L.find(x=>x.id===gioEdit),rec);}else L.push({id:uid('G'),...rec});
+    $('gForm').hidden=true;gioEdit=null;setDirty(dirty+1);renderGio();toast('Đã lưu ngày giỗ. Nhớ bấm "Lưu lên GitHub".');return;}
+  const txt=['[GIA PHẢ DIÊN SANH] '+(gioEdit?'SỬA':'BỔ SUNG')+' NGÀY GIỖ',`Người được giỗ: ${rec.name}${pid?' ('+pid+')':''}`,`Ngày giỗ: ${d}/${m} âm lịch`,rec.host&&'Người lo giỗ: '+rec.host,rec.place&&'Nơi cúng: '+rec.place,rec.note&&'Ghi chú: '+rec.note].filter(Boolean).join('\n');
+  const o=$('gOut');o.hidden=false;o.value=txt;postHeight();
+  try{await navigator.clipboard.writeText(txt);toast('Đã sao chép. Dán gửi trưởng họ qua Zalo.');}catch(_){o.select();toast('Nhấn giữ để sao chép nội dung.');}
+});
+/* gợi ý từ ngày mất dương lịch đầy đủ trên phả */
+$('gSug').onclick=()=>{
+  const have=new Set(gioList().map(g=>g.pid));const out=[];
+  Object.values(P).forEach(p=>{if(have.has(p.i)||!p.d)return;const m=String(p.d).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(!m)return;
+    const [ld,lm,ly,leap]=AL.s2l(+m[1],+m[2],+m[3]);out.push({p,ld,lm,ly,leap,src:p.d});});
+  $('gSugList').innerHTML=out.length?out.map(x=>`<li><b>${esc(x.p.n)}</b> · mất ${esc(x.src)} dương lịch → <b>${x.ld}/${x.lm}${x.leap?' (nhuận)':''} ÂL</b> năm ${AL.canChi(x.ly)} <button class="btn solid sm" type="button" data-gsug="${x.p.i}|${x.ld}|${x.lm}|${x.src}">Thêm vào lịch</button></li>`).join('')
+    :'<li class="meta">Không còn ai có ngày mất dương lịch đầy đủ mà chưa có trong lịch.</li>';
+  $('gSugBox').hidden=false;postHeight();};
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-gedit],[data-gdel],[data-gdelok],[data-gdelno],[data-gsug],[data-gyear]');if(!t)return;const d=t.dataset;
+  if(d.gedit){gioDatalist();gioOpen(d.gedit);}
+  else if(d.gdel){gioDel=d.gdel;renderGio();}
+  else if(d.gdelno){gioDel=null;renderGio();}
+  else if(d.gdelok){DATA.gio=gioList().filter(g=>g.id!==d.gdelok);gioDel=null;setDirty(dirty+1);renderGio();toast('Đã xóa. Nhớ bấm "Lưu lên GitHub".');}
+  else if(d.gsug){const [pid,ld,lm,src]=d.gsug.split('|');gioList().push({id:uid('G'),pid,name:P[pid].n,d:+ld,m:+lm,place:'',host:'',note:'Tính từ ngày mất dương lịch '+src+'.'});setDirty(dirty+1);t.closest('li').remove();renderGio();toast('Đã thêm '+P[pid].n+'.');}
+  else if(d.gyear){gioYear+=+d.gyear;renderGio();}
+});
+/* tải lịch vào điện thoại (.ics) – 10 năm tới */
+$('gIcs').onclick=()=>{
+  const t=today0(),ly=AL.s2l(t.getDate(),t.getMonth()+1,t.getFullYear())[2],p2=n=>String(n).padStart(2,'0'),ymd=d=>d.getFullYear()+p2(d.getMonth()+1)+p2(d.getDate());
+  const esc2=s=>String(s).replace(/[\;,]/g,m=>'\\'+m).replace(/\n/g,'\\n');
+  let ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Gia pha ho Nguyen Dien Sanh//VI','CALSCALE:GREGORIAN','X-WR-CALNAME:Lịch giỗ họ Nguyễn Diên Sanh'];
+  gioList().forEach(g=>{for(let y=ly;y<ly+10;y++){const d=AL.gioDate(g.d,g.m,y);if(!d||d<t)continue;const e=new Date(d);e.setDate(e.getDate()+1);
+    ics.push('BEGIN:VEVENT','UID:'+g.id+'-'+y+'@giapha-diensanh','DTSTAMP:'+ymd(t)+'T000000Z','DTSTART;VALUE=DATE:'+ymd(d),'DTEND;VALUE=DATE:'+ymd(e),
+      'SUMMARY:'+esc2('Giỗ '+gioNameOf(g)+' ('+g.d+'/'+g.m+' ÂL)'),'DESCRIPTION:'+esc2([g.host&&'Lo giỗ: '+g.host,g.place,g.note].filter(Boolean).join(' · ')),
+      'BEGIN:VALARM','TRIGGER:-P1D','ACTION:DISPLAY','DESCRIPTION:'+esc2('Ngày mai giỗ '+gioNameOf(g)),'END:VALARM','END:VEVENT');}});
+  ics.push('END:VCALENDAR');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([ics.join('\r\n')],{type:'text/calendar'}));a.download='lich-gio-ho-nguyen-dien-sanh.ics';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+  toast('Đã tải lịch giỗ 10 năm tới. Mở file để thêm vào lịch điện thoại, có nhắc trước 1 ngày.');};
 
 /* ================= SƠ ĐỒ CÂY (dạng bảng gia phả) ================= */
 const CC=['#1f9d3a','#e8800f','#1b8fd2','#d62828','#2e9e6a','#1a6fc4','#e0661b','#3c9a2e'];
@@ -826,6 +1021,7 @@ function renderCInfo(){
   const p=P[id],sps=(SP[id]||[]).filter(s=>s.n),kids=KIDS[id]||[];
   let h=`<div class="nm">${esc(p.n)}<small>Đời ${p.g} (${han(p.g)}世) · chi thứ ${CHI.indexOf(p.c)+1} · mã ${esc(p.i)}</small></div><dl>`;
   if(p.b)h+=`<dt>Sinh</dt><dd>${esc(p.b)}</dd>`;if(p.d)h+=`<dt>Mất</dt><dd>${esc(String(p.d).replace(/ AL$/,' ÂL'))}</dd>`;
+  if(gioTxt(id))h+=`<dt>Ngày giỗ</dt><dd>${esc(gioTxt(id))}</dd>`;
   h+=`<dt>Cha mẹ</dt><dd>${parentName(p)}</dd>`;
   if(sps.length)h+=`<dt>Hôn phối</dt><dd>${sps.map(s=>esc(s.n)).join(', ')}</dd>`;
   h+=`<dt>Con</dt><dd>${kids.length} · hậu duệ ${descCount(id)}</dd></dl>`;
