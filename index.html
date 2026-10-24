@@ -158,6 +158,45 @@ form.f .row{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;align-items:cen
 .homebtn{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:30;background:linear-gradient(var(--red-l),var(--red));color:#fff;text-decoration:none;font:700 13px var(--f-ui);padding:9px 14px;border:1px solid var(--red-d);border-radius:3px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
 .homebtn:hover{background:var(--red-d)}
 .embed .homebtn{display:none}
+/* sơ đồ cây */
+.seg{display:inline-flex}
+.seg .btn{border-radius:0}
+.seg .btn:first-child{border-radius:2px 0 0 2px}.seg .btn:last-child{border-radius:0 2px 2px 0;border-left:0}
+.seg .btn[aria-pressed="true"]{background:var(--red);border-color:var(--red-d);color:#fff}
+.chartbox{border:3px double #c4161c;background:#fffdf4;padding:8px;display:flex;flex-direction:column;gap:8px}
+.chartbox:fullscreen{overflow:auto;padding:14px}
+.path{font-size:12.5px;color:var(--ink-d);display:flex;flex-wrap:wrap;gap:2px 4px;align-items:center}
+.path button{background:none;border:0;padding:0 2px;color:var(--blue);cursor:pointer;font:inherit;font-weight:700}
+.path button:hover{text-decoration:underline}
+.path .sep{color:#bbb}
+.path b{color:var(--red)}
+.cinfo{display:flex;gap:10px 18px;flex-wrap:wrap;align-items:flex-start;background:#fff;border:1px solid #ead9a6;border-left:4px solid var(--cc,#c4161c);padding:8px 10px}
+.cinfo .nm{font:700 16px var(--f-head);color:var(--blue);flex:1 1 220px;min-width:0}
+.cinfo .nm small{display:block;font:400 12px var(--f-ui);color:var(--ink-d);margin-top:2px}
+.cinfo dl{display:grid;grid-template-columns:auto auto;gap:1px 10px;margin:0;font-size:12.5px;flex:2 1 260px}
+.cinfo dt{color:var(--ink-d)}.cinfo dd{margin:0}
+.cinfo .act{display:flex;gap:6px;flex-wrap:wrap;flex-basis:100%}
+.ctools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ctools .hint{flex:1;min-width:160px}
+.cview{overflow:auto;max-height:78vh;min-height:220px;background:#fffdf4;cursor:grab;position:relative;touch-action:pan-x pan-y}
+.cview.drag{cursor:grabbing;user-select:none}
+.chartbox:fullscreen .cview{max-height:none;flex:1}
+.csize{position:relative}
+.cinner{position:absolute;left:0;top:0;transform-origin:0 0}
+.cinner svg{position:absolute;left:0;top:0;overflow:visible}
+.cn{cursor:pointer}
+.cn:hover rect,.cn:hover ellipse{stroke-width:2.5}
+.cn:focus{outline:none}.cn:focus-visible rect{stroke:#0a6fd1;stroke-width:3}
+.cnx{position:absolute;box-sizing:border-box;background:var(--bg,#fdf1c7);border:1px solid var(--bd,#d9b76a);border-radius:2px;color:#3b2a10;font:12px/1.2 var(--f-ui);cursor:pointer;padding:3px 4px;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;box-shadow:0 1px 0 rgba(0,0,0,.06)}
+.cn:hover{outline:2px solid var(--cc);z-index:2}
+.cn:focus-visible{outline:2px solid var(--blue-t);z-index:3}
+.cn.v{writing-mode:vertical-rl;padding:4px 2px;font-size:11.5px;letter-spacing:.02em}
+.cn.root{font:700 13px/1.25 var(--f-head);background:#fff1ef;border:2px solid #c4161c;border-radius:50%/40%;color:#8f0d12}
+.cn.sel{outline:3px solid var(--red);z-index:3}
+.cn.f{color:#7a2a5a}
+.cn .new{display:inline-block;width:6px;height:6px;border-radius:50%;background:#2e7d32;margin:0 2px}
+.cn .more{font-weight:700;color:var(--cc)}
+.listonly{display:inline-flex;gap:6px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
 .embed .menu,.embed footer .wrap>span:first-child{display:none}
@@ -227,10 +266,30 @@ footer a,footer .lk{color:#fff}
         <h2 class="c" id="treeTitle">Con cháu cụ</h2>
         <div class="date" id="treeSub" style="text-align:center;margin-top:4px"></div>
         <div class="toolbar">
-          <button class="btn sm" id="expand" type="button">Mở hết</button>
-          <button class="btn sm" id="collapse" type="button">Chỉ hiện con trực hệ</button>
+          <span class="seg" role="group" aria-label="Kiểu xem">
+            <button class="btn sm" id="vChart" type="button" aria-pressed="true">Sơ đồ cây</button>
+            <button class="btn sm" id="vList" type="button" aria-pressed="false">Danh sách</button>
+          </span>
+          <span class="listonly">
+            <button class="btn sm" id="expand" type="button">Mở hết</button>
+            <button class="btn sm" id="collapse" type="button">Chỉ hiện con trực hệ</button>
+          </span>
         </div>
-        <div class="tree" id="tree"></div>
+        <div id="chartBox" class="chartbox">
+          <nav class="path" id="cPath" aria-label="Đường dẫn nhánh"></nav>
+          <div class="cinfo" id="cInfo"></div>
+          <div class="ctools">
+            <button class="btn sm" type="button" id="zOut" aria-label="Thu nhỏ">−</button>
+            <button class="btn sm" type="button" id="zFit">Vừa khung</button>
+            <button class="btn sm" type="button" id="zIn" aria-label="Phóng to">+</button>
+            <button class="btn sm" type="button" id="zFull">Toàn màn hình</button>
+            <button class="btn solid sm" type="button" id="pA0">In khổ A0</button>
+            <button class="btn sm" type="button" id="dA0">Tải file A0 (SVG)</button>
+            <span class="hint" id="cHint">Bấm vào một người để xem nhánh từ người đó trở xuống. Kéo để di chuyển.</span>
+          </div>
+          <div class="cview" id="cView"><div class="csize" id="cSize"><div class="cinner" id="cInner"></div></div></div>
+        </div>
+        <div class="tree" id="tree" hidden></div>
       </div>
     </main>
 
@@ -407,7 +466,7 @@ function start(){
   $('tt').innerHTML=DATA.tt||'';$('tt').hidden=true; /* bài Thế phổ tự chỉ hiện khi bấm menu */
   $('lockWrap').hidden=true;$('app').hidden=false;$('q').disabled=false;$('logout').hidden=false;
   $('adminBar').hidden=!isAdmin();
-  renderAll();
+  setView(VIEW);renderAll();
   if(inFrame)try{parent.postMessage({giapha:'role',role:ROLE},'*');}catch(_){}
   const h=pendingGoto||(location.hash||'').slice(1);pendingGoto=null;
   if(P[h]&&h!==cur)goTo(h);
@@ -426,7 +485,7 @@ function renderChi(){
   $('kids').innerHTML=k.map(c=>`<li><button type="button" data-p="${c}">${esc(P[c].n)}</button></li>`).join('');
   $('crumb').textContent='Gia phả » Chi cụ '+P[cur].n;
 }
-$('chi').addEventListener('click',e=>{const b=e.target.closest('.bv');if(!b)return;cur=b.dataset.id;sel=cur;hl=null;collapsed.clear();showTT(false);renderAll();scrollToEl($('pha-he'));
+$('chi').addEventListener('click',e=>{const b=e.target.closest('.bv');if(!b)return;cur=b.dataset.id;sel=cur;hl=null;collapsed.clear();CROOT=cur;ZOOM=null;showTT(false);renderAll();scrollToEl($('pha-he'));
   try{history.replaceState(null,'','#'+cur);}catch(_){}});
 
 /* ---------- cây ---------- */
@@ -456,6 +515,8 @@ function maxGen(id){let g=P[id].g;(KIDS[id]||[]).forEach(k=>g=Math.max(g,maxGen(
 function countSp(id){let n=(SP[id]||[]).filter(s=>s.n).length;(KIDS[id]||[]).forEach(k=>n+=countSp(k));return n;}
 function render(){
   const p=P[cur];
+  $('sP').textContent=countDesc(cur);$('sS').textContent=countSp(cur);$('sG').textContent=maxGen(cur);
+  if(typeof VIEW!=='undefined'&&VIEW==='chart'){renderChart();return;}
   $('treeTitle').textContent='Con cháu cụ '+p.n;
   $('treeSub').textContent='Chi thứ '+(CHI.indexOf(cur)+1)+' · mã '+cur+(p.b?' · sinh năm '+p.b:'');
   $('tree').innerHTML='<ul>'+nodeHTML(cur)+'</ul>';
@@ -498,6 +559,7 @@ function showProf(id){
 }
 function goTo(id){
   const p=P[id];if(!p)return;
+  if(VIEW==='chart'){setCRoot(id);return;}
   if(p.c!==cur){cur=p.c;collapsed.clear();try{history.replaceState(null,'','#'+cur);}catch(_){}}
   let a=p.f;while(a&&P[a]){collapsed.delete(a);a=P[a].f;}
   sel=id;hl=id;confirmDel=null;showTT(false);renderAll();scrollToEl($('n-'+id));
@@ -666,6 +728,211 @@ document.addEventListener('click',e=>{const a=e.target.closest('[data-home]');if
     dirty=0;window.close();setTimeout(()=>{location.href=home;},300);return;}
   location.href=home;});
 function toast(t){const el=$('toast');el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,3600);}
+
+/* ================= SƠ ĐỒ CÂY (dạng bảng gia phả) ================= */
+const CC=['#1f9d3a','#e8800f','#1b8fd2','#d62828','#2e9e6a','#1a6fc4','#e0661b','#3c9a2e'];
+let VIEW=store.get('gp-view')||'chart',CROOT='I1',ZOOM=null,dragMoved=false;
+const ROOT_NAME='Nguyễn Văn Liên';
+const kidsOf=id=>id==='I1'?CHI:(KIDS[id]||[]);
+const colorOf=id=>id==='I1'?'#c4161c':CC[CHI.indexOf(P[id].c)]||'#c4161c';
+const genOf=id=>id==='I1'?1:P[id].g;
+function fillOf(g){return g<=2?'#fbd7a0':g<=4?'#fdf0c2':g===5?'#fde3cf':'#f8cfc6';}
+function descCount(id){let n=0;kidsOf(id).forEach(k=>{n+=1+descCount(k);});return n;}
+function leafCount(id){const k=kidsOf(id);return k.length?k.reduce((s,c)=>s+leafCount(c),0):1;}
+function wrapWords(s,max,maxLines){
+  const w=String(s).split(/\s+/);const L=[];let cur='';
+  w.forEach(x=>{if(!cur)cur=x;else if((cur+' '+x).length<=max)cur+=' '+x;else{L.push(cur);cur=x;}});if(cur)L.push(cur);
+  if(L.length>maxLines){const keep=L.slice(0,maxLines);keep[maxLines-1]=keep[maxLines-1].slice(0,max-1)+'…';return keep;}
+  return L;
+}
+const SZS={root:[190,66],h:[106,48],v:[36,132]};
+function layout(root,mode){
+  const GX=mode==='print'?5:8,GY=mode==='print'?44:50;
+  const avail=Math.max(320,($('cView').clientWidth||900)-10);
+  const allH=mode==='screen'&&root!=='I1'&&leafCount(root)*(SZS.h[0]+GX)<=avail*1.4;
+  const kind=mode==='print'
+    ?d=>d===0?(root==='I1'?'root':'h'):d<=1?'h':'v'
+    :d=>d===0?(root==='I1'?'root':'h'):(allH||d<=(root==='I1'?2:1))?'h':'v';
+  const SZ=mode==='print'?{root:[190,66],h:[106,48],v:[30,132]}:SZS;
+  const W={},K={},rowH=[];
+  (function meas(id,d){K[id]=kind(d);rowH[d]=Math.max(rowH[d]||0,SZ[K[id]][1]);
+    const ch=kidsOf(id);let tot=0;ch.forEach((c,i)=>{tot+=meas(c,d+1)+(i?GX:0);});return W[id]=Math.max(SZ[K[id]][0],tot);})(root,0);
+  const rowY=[];let y=0;rowH.forEach((h,i)=>{rowY[i]=y;y+=h+GY;});
+  const nodes=[],edges=[];
+  (function place(id,d,x0){const [w,h]=SZ[K[id]];const cx=x0+W[id]/2;const n={id,d,k:K[id],x:cx-w/2,y:rowY[d],w,h,cx};nodes.push(n);
+    const ch=kidsOf(id);if(!ch.length)return n;const tot=ch.reduce((s,c,i)=>s+W[c]+(i?GX:0),0);let x=x0+(W[id]-tot)/2;
+    const kids=ch.map(c=>{const k=place(c,d+1,x);x+=W[c]+GX;return k;});edges.push({p:n,kids,mid:rowY[d+1]-GY/2});return n;})(root,0,0);
+  return {nodes,edges,W:W[root],H:y-GY,rows:rowH.length,GY};
+}
+function nodeSVG(n,selId){
+  const id=n.id,col=colorOf(id),isRoot=n.k==='root';
+  const nm=id==='I1'?ROOT_NAME:P[id].n,g=genOf(id),fem=id!=='I1'&&/ Thị /.test(' '+nm+' ');
+  const tip=id==='I1'?'Thủy tổ: Cụ Nguyễn Văn Liên (Cụ Tế) · Đời 1':nm+' · Đời '+g+(P[id].b?' · Sinh '+P[id].b:'')+(P[id].d?' · Mất '+P[id].d:'');
+  let s=`<g class="cn" data-cp="${id}" tabindex="0" role="button" aria-label="${esc(tip)}"><title>${esc(tip)}</title>`;
+  const st=id===selId?'#c4161c':isRoot?'#c4161c':'#c9a24f',sw=id===selId?3:isRoot?2:1;
+  if(isRoot){s+=`<ellipse cx="${n.cx}" cy="${n.y+n.h/2}" rx="${n.w/2}" ry="${n.h/2}" fill="#fff4dc" stroke="${st}" stroke-width="${sw}"/>`;
+    s+=`<text x="${n.cx}" y="${n.y+n.h/2-4}" text-anchor="middle" font-family="Verdana,Arial,sans-serif" font-weight="700" font-size="20" fill="#1b3f8f">CỤ TẾ</text>`;
+    s+=`<text x="${n.cx}" y="${n.y+n.h/2+16}" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#5a4630">Nguyễn Văn Liên · Đỗ Cử nhân</text>`;}
+  else{
+    s+=`<rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="2" fill="${fillOf(g)}" stroke="${st}" stroke-width="${sw}"/>`;
+    s+=`<rect x="${n.x}" y="${n.y}" width="${n.k==='h'?n.w:4}" height="${n.k==='h'?4:n.h}" fill="${col}"/>`;
+    const fc=fem?'#7a2a5a':'#3b2a10';
+    if(n.k==='h'){const L=wrapWords((g===2?'Cụ ':'')+nm,16,3);const fs=L.length>2?10.5:11.5;const y0=n.y+n.h/2+2-(L.length-1)*fs*0.6;
+      L.forEach((l,i)=>{s+=`<text x="${n.cx}" y="${y0+i*fs*1.2+3}" text-anchor="middle" font-family="Arial,sans-serif" font-size="${fs}" fill="${fc}"${i===0&&g===2?' font-weight="700"':''}>${esc(l)}</text>`;});}
+    else{const L=wrapWords(nm,19,2);const cy=n.y+n.h/2+2,fs=11;const off=(L.length-1)*fs*0.6;
+      L.forEach((l,i)=>{s+=`<text x="${n.cx}" y="${cy}" dy="${(i*fs*1.2-off+fs*0.35).toFixed(1)}" transform="rotate(90 ${n.cx} ${cy})" text-anchor="middle" font-family="Arial,sans-serif" font-size="${fs}" fill="${fc}">${esc(l)}</text>`;});}
+    if(!/^I\d+$/.test(id))s+=`<circle cx="${n.x+n.w-5}" cy="${n.y+9}" r="3" fill="#2e7d32"/>`;
+  }
+  return s+'</g>';
+}
+function chartSVG(L,selId){
+  let e='';
+  L.edges.forEach(({p,kids,mid})=>{
+    const xs=kids.map(k=>k.cx),a=Math.min(...xs,p.cx),b=Math.max(...xs,p.cx);
+    const pc=p.id==='I1'?'#7a5a2a':colorOf(p.id);
+    e+=`<path d="M${p.cx} ${p.y+p.h}V${mid}" stroke="${pc}" stroke-width="1.6" fill="none"/>`;
+    if(p.id==='I1'){e+=`<path d="M${a} ${mid}H${b}" stroke="#7a5a2a" stroke-width="1.6"/>`;}
+    else e+=`<path d="M${a} ${mid}H${b}" stroke="${pc}" stroke-width="1.6"/>`;
+    kids.forEach(k=>{const c=colorOf(k.id);e+=`<path d="M${k.cx} ${mid}V${k.y-6}" stroke="${c}" stroke-width="1.6"/><path d="M${k.cx-4} ${k.y-7}L${k.cx+4} ${k.y-7}L${k.cx} ${k.y}Z" fill="${c}"/>`;});
+  });
+  return e+L.nodes.map(n=>nodeSVG(n,selId)).join('');
+}
+function renderChart(){
+  const L=layout(CROOT,'screen');
+  const fit=Math.min(1,($('cView').clientWidth-10)/L.W);
+  let center=false;
+  if(ZOOM===null){ZOOM=fit>=.45?fit:(CROOT==='I1'?.6:Math.max(.45,fit));center=ZOOM>fit;}
+  $('cInner').innerHTML=`<svg width="${L.W+4}" height="${L.H+4}" viewBox="-2 -2 ${L.W+4} ${L.H+4}" xmlns="http://www.w3.org/2000/svg">${chartSVG(L,CROOT)}</svg>`;
+  $('cInner').style.transform=`scale(${ZOOM})`;
+  $('cSize').style.width=(L.W+4)*ZOOM+'px';$('cSize').style.height=(L.H+4)*ZOOM+'px';
+  $('zFit').textContent='Vừa khung'+(Math.abs(ZOOM-fit)<.01?'':'');
+  if(center){const v=$('cView'),r=L.nodes[0];requestAnimationFrame(()=>{v.scrollLeft=Math.max(0,r.cx*ZOOM-v.clientWidth/2);v.scrollTop=0;});}
+  renderPath();renderCInfo();
+  const g0=genOf(CROOT),gN=g0+L.rows-1,n=descCount(CROOT);
+  $('treeTitle').textContent=CROOT==='I1'?'Sơ đồ gia phả toàn họ':'Sơ đồ nhánh '+(genOf(CROOT)===2?'cụ ':'')+P[CROOT].n;
+  $('treeSub').textContent=`Đời ${g0} đến đời ${gN} · ${n} hậu duệ`;
+  postHeight();
+}
+function renderPath(){
+  const chain=[];let a=CROOT;while(a&&a!=='I1'&&P[a]){chain.unshift(a);a=P[a].f||'I1';}
+  let h=`<button type="button" data-cr="I1">Cụ Tế (toàn họ)</button>`;
+  chain.forEach((id,i)=>{h+=`<span class="sep">›</span>`+(i===chain.length-1?`<b>${esc(P[id].n)}</b>`:`<button type="button" data-cr="${id}">${esc(P[id].n)}</button>`);});
+  $('cPath').innerHTML=h;
+}
+function renderCInfo(){
+  const id=CROOT,box=$('cInfo');box.style.setProperty('--cc',colorOf(id));
+  if(id==='I1'){box.innerHTML=`<div class="nm">Cụ Tế · Nguyễn Văn Liên<small>Thủy tổ · Đời 1 · Đỗ cử nhân · Hưởng thọ 85 tuổi · Giỗ 12/3 ÂL</small></div>
+    <dl><dt>Các bà</dt><dd>Phan Thị Nhạn, Nguyễn Thị Đội, Phan Thị Khâm, Võ Thị Hằng</dd><dt>Con trai</dt><dd>8 chi phái</dd><dt>Hậu duệ</dt><dd>${descCount('I1')} người trên phả</dd></dl>`;return;}
+  const p=P[id],sps=(SP[id]||[]).filter(s=>s.n),kids=KIDS[id]||[];
+  let h=`<div class="nm">${esc(p.n)}<small>Đời ${p.g} (${han(p.g)}世) · chi thứ ${CHI.indexOf(p.c)+1} · mã ${esc(p.i)}</small></div><dl>`;
+  if(p.b)h+=`<dt>Sinh</dt><dd>${esc(p.b)}</dd>`;if(p.d)h+=`<dt>Mất</dt><dd>${esc(String(p.d).replace(/ AL$/,' ÂL'))}</dd>`;
+  h+=`<dt>Cha mẹ</dt><dd>${parentName(p)}</dd>`;
+  if(sps.length)h+=`<dt>Hôn phối</dt><dd>${sps.map(s=>esc(s.n)).join(', ')}</dd>`;
+  h+=`<dt>Con</dt><dd>${kids.length} · hậu duệ ${descCount(id)}</dd></dl>`;
+  if(NOTES[id])h+=`<div class="hint" style="flex-basis:100%;white-space:pre-line">${esc(NOTES[id])}</div>`;
+  h+=`<div class="act"><button class="btn sm" type="button" data-cr="${p.f||'I1'}">↑ Lên đời trên</button><button class="btn sm" type="button" data-cr="I1">Toàn bộ cây</button>`;
+  h+=isAdmin()?`<button class="btn solid sm" type="button" data-add="${id}">+ Thêm con</button><button class="btn sm" type="button" data-fix="${id}">Sửa</button>`
+    :`<button class="btn solid sm" type="button" data-add="${id}">+ Bổ sung con</button><button class="btn sm" type="button" data-fix="${id}">Báo sửa</button>`;
+  box.innerHTML=h+'</div>';
+}
+function setCRoot(id){
+  if(id!=='I1'&&!P[id])return;
+  CROOT=id;ZOOM=null;
+  if(id!=='I1'){sel=id;if(P[id].c!==cur){cur=P[id].c;collapsed.clear();}}
+  showTT(false);renderAll();scrollToEl($('pha-he'));
+}
+function setView(v){VIEW=v;store.set('gp-view',v);
+  $('vChart').setAttribute('aria-pressed',v==='chart');$('vList').setAttribute('aria-pressed',v==='list');
+  $('chartBox').hidden=v!=='chart';$('tree').hidden=v==='chart';document.querySelector('.listonly').hidden=v==='chart';
+  if(v==='chart'&&CROOT!=='I1'&&P[sel]&&P[sel].c===cur)CROOT=sel;
+  render();}
+$('vChart').onclick=()=>setView('chart');$('vList').onclick=()=>setView('list');
+$('zIn').onclick=()=>{ZOOM=Math.min(2.5,(ZOOM||1)*1.25);renderChart();};
+$('zOut').onclick=()=>{ZOOM=Math.max(.12,(ZOOM||1)/1.25);renderChart();};
+$('zFit').onclick=()=>{ZOOM=null;renderChart();};
+$('zFull').onclick=()=>{const b=$('chartBox');if(document.fullscreenElement)document.exitFullscreen();else if(b.requestFullscreen)b.requestFullscreen().catch(()=>toast('Trình duyệt không cho mở toàn màn hình.'));};
+document.addEventListener('fullscreenchange',()=>{ZOOM=null;$('zFull').textContent=document.fullscreenElement?'Thoát toàn màn hình':'Toàn màn hình';if(VIEW==='chart')renderChart();});
+/* bấm vào người trên sơ đồ / đường dẫn */
+document.addEventListener('click',e=>{
+  const r=e.target.closest('[data-cr]');if(r){setCRoot(r.dataset.cr);return;}
+  const n=e.target.closest('[data-cp]');if(n&&!dragMoved){setCRoot(n.dataset.cp);}
+});
+$('cInner').addEventListener('keydown',e=>{const n=e.target.closest('[data-cp]');if(n&&(e.key==='Enter'||e.key===' ')){e.preventDefault();setCRoot(n.dataset.cp);}});
+/* kéo để di chuyển */
+(()=>{const v=$('cView');let sx=0,sy=0,sl=0,st=0,down=false;
+  v.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'||e.button!==0)return;down=true;dragMoved=false;sx=e.clientX;sy=e.clientY;sl=v.scrollLeft;st=v.scrollTop;});
+  window.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)+Math.abs(dy)>5){dragMoved=true;v.classList.add('drag');}if(dragMoved){v.scrollLeft=sl-dx;v.scrollTop=st-dy;}});
+  window.addEventListener('pointerup',()=>{down=false;v.classList.remove('drag');setTimeout(()=>dragMoved=false,0);});
+  v.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();ZOOM=Math.min(2.5,Math.max(.12,(ZOOM||1)*(e.deltaY<0?1.1:1/1.1)));renderChart();},{passive:false});
+})();
+let rT;window.addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(()=>{if(VIEW==='chart'){ZOOM=null;renderChart();}},200);});
+
+/* ---------- in khổ A0 ---------- */
+/* toàn họ: xếp 8 chi thành nhiều tầng cho vừa tỷ lệ A0 */
+function clanLayout(){
+  const subs=CHI.map(c=>({c,L:layout(c,'print')}));const GAPX=34,BG=96,RH=66,TOP=RH+70;
+  let best=null;
+  for(let b=1;b<=4;b++){
+    const total=subs.reduce((t,x,i)=>t+x.L.W+(i?GAPX:0),0),target=total/b;const bands=[];let cur=[],w=0;
+    subs.forEach(x=>{const add=(cur.length?GAPX:0)+x.L.W;if(cur.length&&w+add/2>target&&bands.length<b-1){bands.push(cur);cur=[];w=0;}w+=(cur.length?GAPX:0)+x.L.W;cur.push(x);});
+    bands.push(cur);
+    const bw=bands.map(B=>B.reduce((t,x,i)=>t+x.L.W+(i?GAPX:0),0)),bh=bands.map(B=>Math.max(...B.map(x=>x.L.H)));
+    const W=Math.max(...bw,600)+80,H=TOP+bh.reduce((t,h)=>t+h,0)+BG*(bands.length-1);
+    const sc=Math.min(1189/W,(841*0.78)/H);if(!best||sc>best.sc)best={bands,bw,bh,W,H,sc};
+  }
+  const {bands,bw,bh,W,H}=best;const tx=24,brown='#7a5a2a';let out='',y=TOP;
+  const root={id:'I1',k:'root',w:190,h:RH,x:W/2-95,y:0,cx:W/2};out+=nodeSVG(root,null);
+  out+=`<path d="M${W/2} ${RH}V${RH+20}H${tx}" stroke="${brown}" stroke-width="2" fill="none"/>`;
+  let lastBus=0;
+  bands.forEach((B,k)=>{
+    let x=(W-bw[k])/2;const bus=y-34;lastBus=bus;const cxs=[];
+    B.forEach(({c,L})=>{out+=`<g transform="translate(${x.toFixed(1)} ${y})">${chartSVG(L,null)}</g>`;const r=L.nodes[0];cxs.push([x+r.cx,c]);x+=L.W+GAPX;});
+    out+=`<path d="M${tx} ${bus}H${Math.max(...cxs.map(v=>v[0]))}" stroke="${brown}" stroke-width="2"/>`;
+    cxs.forEach(([cx,c])=>{const col=colorOf(c);out+=`<path d="M${cx} ${bus}V${y-7}" stroke="${col}" stroke-width="1.8"/><path d="M${cx-5} ${y-8}L${cx+5} ${y-8}L${cx} ${y}Z" fill="${col}"/>`;});
+    y+=bh[k]+BG;
+  });
+  out+=`<path d="M${tx} ${RH+20}V${lastBus}" stroke="${brown}" stroke-width="2"/>`;
+  let maxG=0;subs.forEach(x=>maxG=Math.max(maxG,x.L.rows));
+  return {inner:out,W,H,rows:maxG+1};
+}
+function a0SVG(){
+  const M=60;let L,inner;
+  if(CROOT==='I1'){const C=clanLayout();L={W:C.W,H:C.H,rows:C.rows};inner=C.inner;}
+  else{L=layout(CROOT,'print');inner=chartSVG(L,null);}
+  const cw=Math.max(L.W,2600);                       // bề rộng nội dung
+  const bw=Math.min(cw*0.5,1500),bh=bw*434/1441;     // băng đầu trang
+  const bannerSrc=document.querySelector('.banner img')?.getAttribute('src')||'';
+  const titleH=70,footH=110;
+  let Wt=cw+2*M,Ht=M+bh+titleH+L.H+footH+M;
+  // giữ đúng tỷ lệ A0 ngang (1189 × 841)
+  const R=1189/841;if(Wt/Ht>R)Ht=Wt/R;else Wt=Ht*R;
+  const ox=(Wt-L.W)/2,oy=M+bh+titleH;
+  const today=new Date().toLocaleDateString('vi-VN');
+  const sub=CROOT==='I1'?'Toàn họ · từ Thủy tổ Cụ Tế (Nguyễn Văn Liên)':'Nhánh '+P[CROOT].n+' · đời '+genOf(CROOT);
+  let s=`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1189mm" height="841mm" viewBox="0 0 ${Wt.toFixed(0)} ${Ht.toFixed(0)}">`;
+  s+=`<rect width="100%" height="100%" fill="#fffdf6"/>`;
+  s+=`<rect x="14" y="14" width="${Wt-28}" height="${Ht-28}" fill="none" stroke="#8f0d12" stroke-width="6"/><rect x="26" y="26" width="${Wt-52}" height="${Ht-52}" fill="none" stroke="#c4161c" stroke-width="2"/>`;
+  if(bannerSrc)s+=`<image x="${(Wt-bw)/2}" y="${M}" width="${bw}" height="${bh}" href="${bannerSrc}" xlink:href="${bannerSrc}" preserveAspectRatio="xMidYMid meet"/>`;
+  s+=`<text x="${Wt/2}" y="${M+bh+42}" text-anchor="middle" font-family="Verdana,Arial,sans-serif" font-weight="700" font-size="30" fill="#c4161c">SƠ ĐỒ GIA PHẢ HỌ NGUYỄN DIÊN SANH</text>`;
+  s+=`<text x="${Wt/2}" y="${M+bh+64}" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" fill="#5a4630">${esc(sub)} · Diên Sanh, Hải Thọ, Hải Lăng, Quảng Trị</text>`;
+  s+=`<g transform="translate(${ox.toFixed(1)} ${oy})">${inner}</g>`;
+  const fy=Ht-M-60;
+  s+=`<text x="${Wt/2}" y="${fy}" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#5a4630">Lưu bút: Bản gia phả được biên soạn theo bản gốc lưu tại nhà thờ họ Nguyễn tại Diên Sanh. Mong các thành viên trong họ tộc góp ý kiến và bổ sung thông tin để bản gia phả được đầy đủ và hoàn thiện.</text>`;
+  s+=`<text x="${Wt/2}" y="${fy+24}" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#5a4630">Ngày in: ${today} · Gồm ${L.rows} đời, ${descCount(CROOT)+1} người · Người lập: Nguyễn Văn Hoa – Đời thứ 5</text>`;
+  s+=`</svg>`;
+  const fontMm=11*(1189/Wt);   // cỡ chữ thực tế trên giấy (mm)
+  return {svg:s,fontMm};
+}
+function a0Warn(fontMm){
+  return fontMm<2.2?`Cỡ chữ khi in khoảng ${fontMm.toFixed(1)} mm, khá nhỏ. Nên in từng nhánh: bấm vào một cụ tổ chi rồi in.`:`Cỡ chữ khi in khoảng ${fontMm.toFixed(1)} mm.`;
+}
+$('dA0').onclick=()=>{const {svg,fontMm}=a0SVG();
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
+  a.download='so-do-gia-pha-'+(CROOT==='I1'?'toan-ho':CROOT)+'-A0.svg';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+  toast('Đã tải file SVG khổ A0. '+a0Warn(fontMm));};
+$('pA0').onclick=()=>{const {svg,fontMm}=a0SVG();const w=window.open('','_blank');
+  if(!w){toast('Trình duyệt chặn cửa sổ in. Hãy cho phép cửa sổ bật lên, hoặc dùng "Tải file A0 (SVG)".');return;}
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Sơ đồ gia phả A0</title><style>@page{size:1189mm 841mm;margin:0}html,body{margin:0;background:#fff}svg{display:block;width:1189mm;height:841mm}.no{font:14px Arial;padding:8px;background:#fff8d6}@media print{.no{display:none}}</style></head><body><div class="no">${esc(a0Warn(fontMm))} Trong hộp thoại in, chọn khổ giấy A0 (hoặc "Lưu thành PDF"), tỷ lệ 100%, không lề.</div>${svg}<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>`);w.document.close();};
 
 /* ---------- khởi động ---------- */
 (()=>{const pw=store.get(KEY);if(pw)unlock(pw,true);else postHeight();
